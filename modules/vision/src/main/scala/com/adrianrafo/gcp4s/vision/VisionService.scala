@@ -1,100 +1,97 @@
 package com.adrianrafo.gcp4s.vision
 
 import cats.syntax.either._
-import java.nio.file.{Files, Paths}
-import com.google.cloud.vision.v1.Feature.Type
+import java.nio.file._
+
+import cats.MonadError
+import cats.data.EitherT
+import cats.instances.list._
+import cats.instances.either._
+import cats.syntax.functor._
+import cats.syntax.traverse._
+import cats.syntax.flatMap._
+import cats.effect.Sync
 import com.google.cloud.vision.v1._
+import com.google.cloud.vision.v1.Feature.Type
 import com.google.protobuf.ByteString
 
-class VisionService {
+trait VisionService[F[_]] {
+  def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient]
 
-  def createClient(settings: Option[ImageAnnotatorSettings]): ImageAnnotatorClient =
-    settings.fold(ImageAnnotatorClient.create())(ImageAnnotatorClient.create)
-
-  def buildBasicImage(filePath: String): Image =
-    Image.newBuilder
-      .setContent(ByteString.copyFrom(Files.readAllBytes(Paths.get(filePath))))
-      .build()
-
-  def buildBasicFeature(featureType: Feature.Type): Feature =
-    Feature.newBuilder.setType(featureType).build
-
-  def buildBasicRequest(filePath: String, featureType: Feature.Type): AnnotateImageRequest =
-    AnnotateImageRequest.newBuilder
-      .addFeatures(buildBasicFeature(featureType))
-      .setImage(buildBasicImage(filePath))
-      .build
-
-  def buildRequest(feature: Feature, image: Image): AnnotateImageRequest =
-    AnnotateImageRequest.newBuilder.addFeatures(feature).setImage(image).build
-
-  def basicSee(fileName: String): Either[VisionError, List[VisionLabel]] = {
-    import implicits._
-    val client   = createClient(None)
-    val request  = buildBasicRequest(fileName, Type.LABEL_DETECTION)
-    val response = client.annotateImage(request)
-    response.getLabels
-  }
-
-  def see(
+  def seeImage(
       client: ImageAnnotatorClient,
-      request: AnnotateImageRequest): List[Either[VisionError, List[VisionLabel]]] = {
-    import implicits._
-    val response = client.annotateImage(request)
-    response.getLabelsPerImage
-  }
+      filePath: Either[ImageSource, String],
+      context: Option[ImageContext]): F[VisionResponse]
 
-  sealed trait Implicits {
-    final class ImageAnnotatorClientOps(client: ImageAnnotatorClient) {
+  def seeImageBatch(
+      client: ImageAnnotatorClient,
+      fileList: List[Either[ImageSource, String]],
+      context: Option[ImageContext]): F[List[VisionResponse]]
+}
+object VisionService {
 
-      import scala.collection.JavaConverters._
+  def apply[F[_]: Sync](
+      implicit ME: MonadError[F, Throwable],
+      EHS: ErrorHandlerService[F]): VisionService[F] = new VisionService[F] {
+    type VisionResult[A] = EitherT[F, VisionError, A]
 
-      def annotateImage(requests: AnnotateImageRequest): BatchAnnotateImagesResponse =
-        client.batchAnnotateImages(List(requests).asJava)
+    def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient] =
+      ME.catchNonFatal(settings.fold(ImageAnnotatorClient.create())(ImageAnnotatorClient.create))
 
-      def annotateImagesBatch(requests: List[AnnotateImageRequest]): BatchAnnotateImagesResponse =
-        client.batchAnnotateImages(requests.asJava)
+    private def buildRequest(
+        filePath: Either[ImageSource, String],
+        featureType: Feature.Type,
+        context: Option[ImageContext]): VisionResult[AnnotateImageRequest] = {
 
-    }
+      def buildImage(filePath: Either[ImageSource, String]): VisionResult[Image] = {
+        def getPath(path: String): F[Either[VisionError, Path]] = EHS.handleError(Paths.get(path))
 
-    final class BatchAnnotateImagesResponseOps(response: BatchAnnotateImagesResponse) {
-
-      import scala.collection.JavaConverters._
-
-      private def getPercentScore(score: Float): Int = (score * 100).toInt
-
-      def getLabelsPerImage: List[Either[VisionError, List[VisionLabel]]] = {
-        response.getResponsesList.asScala
-          .foldRight(List.empty[Either[VisionError, List[VisionLabel]]]) {
-            case (res, list) if res.hasError =>
-              list :+ VisionError(s"Error: ${res.getError}").asLeft[List[VisionLabel]]
-            case (res, list) if !res.hasError =>
-              list :+ res.getLabelAnnotationsList.asScala.toList
-                .map(tag => VisionLabel(tag.getLocale, getPercentScore(tag.getScore)))
-                .asRight[VisionError]
-          }
+        val builder = Image.newBuilder
+        filePath
+          .fold(
+            source => EitherT.rightT[F, VisionError](builder.setSource(source).build()),
+            filePath =>
+              EitherT(getPath(filePath))
+                .map(path =>
+                  builder.setContent(ByteString.copyFrom(Files.readAllBytes(path))).build())
+          )
       }
 
-      def getLabels: Either[VisionError, List[VisionLabel]] = {
-        response.getResponses(0) match {
-          case res if res.hasError =>
-            VisionError(s"Error: ${res.getError}").asLeft[List[VisionLabel]]
-          case res if !res.hasError =>
-            res.getLabelAnnotationsList.asScala.toList
-              .map(tag => VisionLabel(tag.getLocale, getPercentScore(tag.getScore)))
-              .asRight[VisionError]
-        }
-      }
+      def buildFeature(featureType: Feature.Type): Feature =
+        Feature.newBuilder.setType(featureType).build
 
+      buildImage(filePath)
+        .map(
+          AnnotateImageRequest.newBuilder
+            .addFeatures(buildFeature(featureType))
+            .setImage(_)
+        )
+        .map(builder => context.map(builder.setImageContext).getOrElse(builder).build())
     }
 
-    implicit def imageAnnotatorClientOps(client: ImageAnnotatorClient): ImageAnnotatorClientOps =
-      new ImageAnnotatorClientOps(client)
+    def seeImage(
+        client: ImageAnnotatorClient,
+        filePath: Either[ImageSource, String],
+        context: Option[ImageContext]): F[VisionResponse] =
+      (for {
+        request  <- buildRequest(filePath, Type.LABEL_DETECTION, context)
+        response <- EitherT(client.labelImage(request)).subflatMap(_.getLabels)
+      } yield response).value
 
-    implicit def batchAnnotateImagesResponseOps(
-        response: BatchAnnotateImagesResponse): BatchAnnotateImagesResponseOps =
-      new BatchAnnotateImagesResponseOps(response)
+    def seeImageBatch(
+        client: ImageAnnotatorClient,
+        fileList: List[Either[ImageSource, String]],
+        context: Option[ImageContext]): F[List[VisionResponse]] = {
+
+      def getBatchRequest: VisionResult[List[AnnotateImageRequest]] =
+        fileList.traverse[VisionResult, AnnotateImageRequest](filePath =>
+          buildRequest(filePath, Type.LABEL_DETECTION, context))
+
+      (for {
+        batchRequest <- getBatchRequest
+        response     <- EitherT(client.labelImageBatch(batchRequest))
+      } yield response.getLabelsPerImage).fold(e => List(e.asLeft[List[VisionLabel]]), identity)
+    }
 
   }
-  object implicits extends Implicits
 }
