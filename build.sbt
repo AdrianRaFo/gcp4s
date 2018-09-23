@@ -14,6 +14,7 @@ lazy val allModulesDeps: Seq[ClasspathDependency] =
 
 lazy val gcp4s = project
   .in(file("."))
-  .settings(name := "gcp4s", scalaVersion := "2.12.6", scalacOptions += "-Ypartial-unification")
+  .settings(name := "gcp4s", organization := "com.adrianrafo")
+  .settings(scalaVersion := "2.12.6", scalacOptions += "-Ypartial-unification")
   .aggregate(allModules: _*)
   .dependsOn(allModulesDeps: _*)
