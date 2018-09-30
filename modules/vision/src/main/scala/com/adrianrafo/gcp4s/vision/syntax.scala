@@ -1,22 +1,25 @@
 package com.adrianrafo.gcp4s.vision
 
+import cats.MonadError
+import cats.effect.Sync
 import cats.syntax.either._
+import com.adrianrafo.gcp4s.ErrorHandlerService
 import com.google.cloud.vision.v1._
 
 private[vision] object syntax {
 
-  final class ImageAnnotatorClientOps[F[_]](client: ImageAnnotatorClient)(
-      implicit EHS: ErrorHandlerService[F]) {
+  final class ImageAnnotatorClientOps[F[_]: Sync](client: ImageAnnotatorClient)(
+      implicit ME: MonadError[F, Throwable]) {
 
     import scala.collection.JavaConverters._
 
-    def labelImage(
+    def annotateImage(
         requests: AnnotateImageRequest): F[Either[VisionError, BatchAnnotateImagesResponse]] =
-      EHS.handleError(client.batchAnnotateImages(List(requests).asJava))
+      ErrorHandlerService.handleError(client.batchAnnotateImages(List(requests).asJava))
 
-    def labelImageBatch(
+    def annotateImageBatch(
         requests: List[AnnotateImageRequest]): F[Either[VisionError, BatchAnnotateImagesResponse]] =
-      EHS.handleError(client.batchAnnotateImages(requests.asJava))
+      ErrorHandlerService.handleError(client.batchAnnotateImages(requests.asJava))
 
   }
 
@@ -32,7 +35,7 @@ private[vision] object syntax {
           VisionError(s"Error: ${res.getError}").asLeft[List[VisionLabel]]
         case res if !res.hasError =>
           res.getLabelAnnotationsList.asScala.toList
-            .map(tag => VisionLabel(tag.getLocale, getPercentScore(tag.getScore)))
+            .map(tag => VisionLabel(tag.getDescription, getPercentScore(tag.getScore)))
             .asRight[VisionError]
       }
 

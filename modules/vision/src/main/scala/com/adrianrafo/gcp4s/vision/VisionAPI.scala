@@ -11,49 +11,49 @@ import cats.syntax.functor._
 import cats.syntax.traverse._
 import cats.syntax.flatMap._
 import cats.effect.Sync
+import com.adrianrafo.gcp4s.ErrorHandlerService
 import com.google.cloud.vision.v1._
 import com.google.cloud.vision.v1.Feature.Type
 import com.google.protobuf.ByteString
 
-trait VisionService[F[_]] {
+trait VisionAPI[F[_]] {
   def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient]
 
-  def seeImage(
+  def labelImage(
       client: ImageAnnotatorClient,
-      filePath: Either[ImageSource, String],
+      filePath: Either[String, ImageSource],
       context: Option[ImageContext]): F[VisionResponse]
 
-  def seeImageBatch(
+  def labelImageBatch(
       client: ImageAnnotatorClient,
-      fileList: List[Either[ImageSource, String]],
+      fileList: List[Either[String, ImageSource]],
       context: Option[ImageContext]): F[List[VisionResponse]]
 }
-object VisionService {
+object VisionAPI {
 
-  def apply[F[_]: Sync](
-      implicit ME: MonadError[F, Throwable],
-      EHS: ErrorHandlerService[F]): VisionService[F] = new VisionService[F] {
+  def apply[F[_]:Sync](
+      implicit ME: MonadError[F, Throwable]): VisionAPI[F] = new VisionAPI[F] {
     type VisionResult[A] = EitherT[F, VisionError, A]
 
     def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient] =
       ME.catchNonFatal(settings.fold(ImageAnnotatorClient.create())(ImageAnnotatorClient.create))
 
     private def buildRequest(
-        filePath: Either[ImageSource, String],
+        filePath: Either[String, ImageSource],
         featureType: Feature.Type,
         context: Option[ImageContext]): VisionResult[AnnotateImageRequest] = {
 
-      def buildImage(filePath: Either[ImageSource, String]): VisionResult[Image] = {
-        def getPath(path: String): F[Either[VisionError, Path]] = EHS.handleError(Paths.get(path))
+      def buildImage(filePath: Either[String, ImageSource]): VisionResult[Image] = {
+        def getPath(path: String): F[Either[VisionError, Path]] = ErrorHandlerService.handleError(Paths.get(path))
 
         val builder = Image.newBuilder
         filePath
           .fold(
-            source => EitherT.rightT[F, VisionError](builder.setSource(source).build()),
             filePath =>
               EitherT(getPath(filePath))
                 .map(path =>
-                  builder.setContent(ByteString.copyFrom(Files.readAllBytes(path))).build())
+                  builder.setContent(ByteString.copyFrom(Files.readAllBytes(path))).build()),
+            source => EitherT.rightT[F, VisionError](builder.setSource(source).build())
           )
       }
 
@@ -69,18 +69,18 @@ object VisionService {
         .map(builder => context.map(builder.setImageContext).getOrElse(builder).build())
     }
 
-    def seeImage(
+    def labelImage(
         client: ImageAnnotatorClient,
-        filePath: Either[ImageSource, String],
+        filePath: Either[String, ImageSource],
         context: Option[ImageContext]): F[VisionResponse] =
       (for {
         request  <- buildRequest(filePath, Type.LABEL_DETECTION, context)
-        response <- EitherT(client.labelImage(request)).subflatMap(_.getLabels)
+        response <- EitherT(client.annotateImage(request)).subflatMap(_.getLabels)
       } yield response).value
 
-    def seeImageBatch(
+    def labelImageBatch(
         client: ImageAnnotatorClient,
-        fileList: List[Either[ImageSource, String]],
+        fileList: List[Either[String, ImageSource]],
         context: Option[ImageContext]): F[List[VisionResponse]] = {
 
       def getBatchRequest: VisionResult[List[AnnotateImageRequest]] =
@@ -89,7 +89,7 @@ object VisionService {
 
       (for {
         batchRequest <- getBatchRequest
-        response     <- EitherT(client.labelImageBatch(batchRequest))
+        response     <- EitherT(client.annotateImageBatch(batchRequest))
       } yield response.getLabelsPerImage).fold(e => List(e.asLeft[List[VisionLabel]]), identity)
     }
 
