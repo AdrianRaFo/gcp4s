@@ -1,15 +1,12 @@
 package com.adrianrafo.gcp4s.vision
 
-import cats.syntax.either._
 import java.nio.file._
 
 import cats.MonadError
 import cats.data.EitherT
+import cats.syntax.either._
 import cats.instances.list._
-import cats.instances.either._
-import cats.syntax.functor._
 import cats.syntax.traverse._
-import cats.syntax.flatMap._
 import cats.effect.Sync
 import com.adrianrafo.gcp4s.ErrorHandlerService
 import com.google.cloud.vision.v1._
@@ -31,8 +28,7 @@ trait VisionAPI[F[_]] {
 }
 object VisionAPI {
 
-  def apply[F[_]:Sync](
-      implicit ME: MonadError[F, Throwable]): VisionAPI[F] = new VisionAPI[F] {
+  def apply[F[_]: Sync](implicit ME: MonadError[F, Throwable]): VisionAPI[F] = new VisionAPI[F] {
     type VisionResult[A] = EitherT[F, VisionError, A]
 
     def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient] =
@@ -44,7 +40,8 @@ object VisionAPI {
         context: Option[ImageContext]): VisionResult[AnnotateImageRequest] = {
 
       def buildImage(filePath: Either[String, ImageSource]): VisionResult[Image] = {
-        def getPath(path: String): F[Either[VisionError, Path]] = ErrorHandlerService.handleError(Paths.get(path))
+        def getPath(path: String): F[Either[VisionError, Path]] =
+          ErrorHandlerService.handleError(Paths.get(path), visionErrorHandler)
 
         val builder = Image.newBuilder
         filePath
@@ -75,7 +72,7 @@ object VisionAPI {
         context: Option[ImageContext]): F[VisionResponse] =
       (for {
         request  <- buildRequest(filePath, Type.LABEL_DETECTION, context)
-        response <- EitherT(client.annotateImage(request)).subflatMap(_.getLabels)
+        response <- EitherT(client.sendRequest(request)).subflatMap(_.getLabels)
       } yield response).value
 
     def labelImageBatch(
@@ -89,7 +86,7 @@ object VisionAPI {
 
       (for {
         batchRequest <- getBatchRequest
-        response     <- EitherT(client.annotateImageBatch(batchRequest))
+        response     <- EitherT(client.sendRequestBatch(batchRequest))
       } yield response.getLabelsPerImage).fold(e => List(e.asLeft[List[VisionLabel]]), identity)
     }
 

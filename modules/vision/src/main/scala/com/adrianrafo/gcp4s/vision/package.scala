@@ -1,6 +1,5 @@
 package com.adrianrafo.gcp4s
 
-import cats.MonadError
 import cats.effect.Sync
 import com.google.cloud.vision.v1._
 
@@ -10,8 +9,10 @@ package object vision {
 
   type VisionResponse = Either[VisionError, List[VisionLabel]]
 
-  implicit def imageAnnotatorClientOps[F[_]: Sync](client: ImageAnnotatorClient)(
-      implicit ME: MonadError[F, Throwable]): ImageAnnotatorClientOps[F] =
+  def visionErrorHandler: Throwable => VisionError = (e: Throwable) => VisionError(e.getMessage)
+
+  implicit def imageAnnotatorClientOps[F[_]: Sync](
+      client: ImageAnnotatorClient): ImageAnnotatorClientOps[F] =
     new ImageAnnotatorClientOps[F](client)
 
   implicit def batchAnnotateImagesResponseOps(

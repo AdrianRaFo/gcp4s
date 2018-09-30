@@ -1,6 +1,5 @@
 package com.adrianrafo.gcp4s.vision
 
-import cats.MonadError
 import cats.effect.Sync
 import cats.syntax.either._
 import com.adrianrafo.gcp4s.ErrorHandlerService
@@ -8,18 +7,21 @@ import com.google.cloud.vision.v1._
 
 private[vision] object syntax {
 
-  final class ImageAnnotatorClientOps[F[_]: Sync](client: ImageAnnotatorClient)(
-      implicit ME: MonadError[F, Throwable]) {
+  final class ImageAnnotatorClientOps[F[_]: Sync](client: ImageAnnotatorClient) {
 
     import scala.collection.JavaConverters._
 
-    def annotateImage(
+    def sendRequest(
         requests: AnnotateImageRequest): F[Either[VisionError, BatchAnnotateImagesResponse]] =
-      ErrorHandlerService.handleError(client.batchAnnotateImages(List(requests).asJava))
+      ErrorHandlerService.handleError(
+        client.batchAnnotateImages(List(requests).asJava),
+        visionErrorHandler)
 
-    def annotateImageBatch(
+    def sendRequestBatch(
         requests: List[AnnotateImageRequest]): F[Either[VisionError, BatchAnnotateImagesResponse]] =
-      ErrorHandlerService.handleError(client.batchAnnotateImages(requests.asJava))
+      ErrorHandlerService.handleError(
+        client.batchAnnotateImages(requests.asJava),
+        visionErrorHandler)
 
   }
 
