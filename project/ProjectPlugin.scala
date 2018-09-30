@@ -18,13 +18,19 @@ object ProjectPlugin extends AutoPlugin {
 
   import autoImport._
 
+  lazy val noPublishSettings: Seq[Def.Setting[_]] = Seq(
+    publish := ((): Unit),
+    publishLocal := ((): Unit),
+    publishArtifact := false
+  )
+
   private lazy val gcpModuleSettings: Seq[Def.Setting[_]] =
     Seq(
       libraryDependencies ++= Seq(
         "org.typelevel" %% "cats-core"   % V.cats,
         "org.typelevel" %% "cats-effect" % V.catsEffects))
 
-  lazy val commonSettings = gcpModuleSettings ++ Seq(
+  lazy val commonSettings = noPublishSettings ++ gcpModuleSettings ++ Seq(
     libraryDependencies +=
       "org.scalatest" %% "scalatest" % V.scalaTest % Test)
 
