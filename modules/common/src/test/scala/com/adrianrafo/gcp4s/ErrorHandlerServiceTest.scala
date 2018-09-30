@@ -12,11 +12,15 @@ class ErrorHandlerServiceTest extends FreeSpec with Matchers {
   "ErrorHandlerService" - {
     "handleError" - {
       "should handle exceptions" in {
-        ErrorHandlerService.handleError[IO, Int](ex(0)).unsafeRunSync() shouldBe 'left
+        ErrorHandlerService
+          .handleError[IO, Throwable, Int](ex(0), identity)
+          .unsafeRunSync() shouldBe 'left
       }
 
       "should return right value" in {
-        ErrorHandlerService.handleError[IO, Int](ex(1)).unsafeRunSync() shouldBe 'right
+        ErrorHandlerService
+          .handleError[IO, Throwable, Int](ex(1), identity)
+          .unsafeRunSync() shouldBe 'right
       }
     }
   }
