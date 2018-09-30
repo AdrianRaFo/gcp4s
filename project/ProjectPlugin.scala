@@ -41,6 +41,8 @@ object ProjectPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
+      name := "gcp4s",
+      organization := "com.adrianrafo",
       organizationName := "AdrianRaFo",
       scalaVersion := "2.12.7",
       scalacOptions := Seq(

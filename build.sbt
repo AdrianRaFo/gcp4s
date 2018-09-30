@@ -4,9 +4,9 @@ import ProjectPlugin._
 ////     Modules     ////
 /////////////////////////
 
-lazy val common = project in file("modules/common") settings commonSettings
+lazy val common = project in file("modules/common") settings (name := "gcp4s-common") settings commonSettings
 
-lazy val vision = project in file("modules/vision") settings visionSettings configs IntegrationTest dependsOn common
+lazy val vision = project in file("modules/vision") settings (name := "gcp4s-vision")  settings visionSettings configs IntegrationTest dependsOn common
 
 /////////////////////////
 ////      gcp4s      ////
@@ -20,7 +20,7 @@ lazy val allModules: Seq[ProjectReference] = Seq(
 lazy val allModulesDeps: Seq[ClasspathDependency] =
   allModules.map(ClasspathDependency(_, None))
 
-lazy val gcp4s = project
+lazy val root = project
   .in(file("."))
   .aggregate(allModules: _*)
   .dependsOn(allModulesDeps: _*)
