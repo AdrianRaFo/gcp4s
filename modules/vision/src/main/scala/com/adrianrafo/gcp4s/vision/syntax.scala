@@ -11,6 +11,7 @@ private[vision] object syntax {
 
     import scala.collection.JavaConverters._
 
+    //TODO make calls Async
     def sendRequest(
         requests: AnnotateImageRequest): F[Either[VisionError, BatchAnnotateImagesResponse]] =
       ErrorHandlerService.handleError(
