@@ -33,6 +33,11 @@ object ProjectPlugin extends AutoPlugin {
       "com.google.cloud" % "google-cloud-vision" % V.gcpClient,
       "org.scalatest"    %% "scalatest"          % V.scalaTest % "test;it"))
 
+  lazy val datastoreSettings = gcpModuleSettings ++ Defaults.itSettings ++ Seq(
+    libraryDependencies ++= Seq(
+      "com.google.cloud" % "google-cloud-datastore" % V.gcpClient,
+      "org.scalatest"    %% "scalatest"             % V.scalaTest % "test;it"))
+
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
       name := "gcp4s",

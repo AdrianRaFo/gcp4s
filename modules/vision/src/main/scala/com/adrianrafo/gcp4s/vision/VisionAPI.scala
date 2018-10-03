@@ -4,14 +4,16 @@ import java.nio.file._
 
 import cats.MonadError
 import cats.data.EitherT
-import cats.syntax.either._
+import cats.effect.Async
 import cats.instances.list._
+import cats.syntax.either._
 import cats.syntax.traverse._
-import cats.effect.Sync
 import com.adrianrafo.gcp4s.ErrorHandlerService
-import com.google.cloud.vision.v1._
 import com.google.cloud.vision.v1.Feature.Type
+import com.google.cloud.vision.v1._
 import com.google.protobuf.ByteString
+
+import scala.concurrent.ExecutionContext
 
 trait VisionAPI[F[_]] {
   def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient]
@@ -28,7 +30,9 @@ trait VisionAPI[F[_]] {
 }
 object VisionAPI {
 
-  def apply[F[_]: Sync](implicit ME: MonadError[F, Throwable]): VisionAPI[F] = new VisionAPI[F] {
+  def apply[F[_]: Async](
+      implicit ME: MonadError[F, Throwable],
+      EC: ExecutionContext): VisionAPI[F] = new VisionAPI[F] {
     type VisionResult[A] = EitherT[F, VisionError, A]
 
     def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient] =

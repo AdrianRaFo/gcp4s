@@ -8,13 +8,16 @@ lazy val common = project in file("modules/common") settings (name := "gcp4s-com
 
 lazy val vision = project in file("modules/vision") settings (name := "gcp4s-vision")  settings visionSettings configs IntegrationTest dependsOn common
 
+lazy val datastore = project in file("modules/datastore") settings (name := "gcp4s-datastore")  settings datastoreSettings configs IntegrationTest dependsOn common
+
 /////////////////////////
 ////      gcp4s      ////
 /////////////////////////
 
 lazy val allModules: Seq[ProjectReference] = Seq(
   common,
-  vision
+  vision,
+  datastore
 )
 
 lazy val allModulesDeps: Seq[ClasspathDependency] =
