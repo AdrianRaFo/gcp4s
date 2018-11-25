@@ -6,7 +6,6 @@ import cats.effect.IO
 import org.scalatest._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class ErrorHandlerServiceTest extends FreeSpec with Matchers {
 
@@ -22,12 +21,14 @@ class ErrorHandlerServiceTest extends FreeSpec with Matchers {
       "should handle exceptions" in {
         ErrorHandlerService
           .handleError[IO, Throwable, Int](ex(0), identity)
+          .value
           .unsafeRunSync() shouldBe 'left
       }
 
       "should return right value" in {
         ErrorHandlerService
           .handleError[IO, Throwable, Int](ex(1), identity)
+          .value
           .unsafeRunSync shouldBe 'right
       }
     }
@@ -35,12 +36,14 @@ class ErrorHandlerServiceTest extends FreeSpec with Matchers {
       "should handle exceptions asynchronously" in {
         ErrorHandlerService
           .asyncHandleError[IO, Throwable, Int](futureEx(0), identity)
+          .value
           .unsafeRunSync() shouldBe 'left
       }
 
       "should return right value asynchronously" in {
         ErrorHandlerService
           .asyncHandleError[IO, Throwable, Int](futureEx(1), identity)
+          .value
           .unsafeRunSync shouldBe 'right
       }
     }

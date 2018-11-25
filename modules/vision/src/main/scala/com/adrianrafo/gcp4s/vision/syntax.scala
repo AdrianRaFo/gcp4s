@@ -1,5 +1,6 @@
 package com.adrianrafo.gcp4s.vision
 
+import cats.data.EitherT
 import cats.effect.Effect
 import cats.syntax.either._
 import com.adrianrafo.gcp4s.ErrorHandlerService
@@ -19,13 +20,15 @@ private[vision] object syntax {
       BatchAnnotateImagesRequest.newBuilder().addAllRequests(requests.asJava).build()
 
     def sendRequest(
-        requests: AnnotateImageRequest): F[Either[VisionError, BatchAnnotateImagesResponse]] =
+        requests: AnnotateImageRequest): EitherT[F, VisionError, BatchAnnotateImagesResponse] =
       ErrorHandlerService.asyncHandleError(
         client.batchAnnotateImagesCallable.futureCall(toBatchRequest(List(requests))).get(),
         visionErrorHandler)
 
-    def sendRequestBatch(
-        requests: List[AnnotateImageRequest]): F[Either[VisionError, BatchAnnotateImagesResponse]] =
+    def sendRequestBatch(requests: List[AnnotateImageRequest]): EitherT[
+      F,
+      VisionError,
+      BatchAnnotateImagesResponse] =
       ErrorHandlerService.asyncHandleError(
         client.batchAnnotateImagesCallable.futureCall(toBatchRequest(requests)).get(),
         visionErrorHandler)

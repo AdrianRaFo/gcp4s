@@ -1,6 +1,6 @@
 package com.adrianrafo.gcp4s
 
-import cats.syntax.functor._
+import cats.data.EitherT
 import cats.syntax.either._
 import cats.effect._
 
@@ -8,13 +8,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ErrorHandlerService {
   def handleError[F[_], E, A](f: => A, handler: Throwable => E)(
-      implicit E: Effect[F]): F[Either[E, A]] =
-    E.attempt[A](E.delay(f)).map(_.leftMap(handler))
+      implicit E: Effect[F]): EitherT[F, E, A] = E.attemptT[A](E.delay(f)).leftMap(handler)
 
   def asyncHandleError[F[_], E, A](f: => A, handler: Throwable => E)(
       implicit E: Effect[F],
-      EC: ExecutionContext): F[Either[E, A]] =
-    E.attempt[A](E.async[A](effect => Future(f).onComplete(res => effect(Either.fromTry[A](res)))))
-      .map(_.leftMap(handler))
+      EC: ExecutionContext): EitherT[F, E, A] =
+    E.attemptT[A](E.async[A](effect =>
+        Future(f).onComplete(res => effect(Either.fromTry[A](res)))))
+      .leftMap(handler)
 
 }
