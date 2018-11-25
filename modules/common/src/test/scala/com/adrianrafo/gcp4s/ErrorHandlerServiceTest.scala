@@ -10,7 +10,7 @@ import scala.concurrent.Future
 
 class ErrorHandlerServiceTest extends FreeSpec with Matchers {
 
-  def futureEx(n: Int) = Future {
+  def futureEx(n: Int) = {
     Thread.sleep(500)
     if (n == 0) throw new IOException else n
   }

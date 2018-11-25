@@ -4,7 +4,7 @@ import java.nio.file._
 
 import cats.MonadError
 import cats.data.EitherT
-import cats.effect.Async
+import cats.effect.Effect
 import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.traverse._
@@ -30,7 +30,7 @@ trait VisionAPI[F[_]] {
 }
 object VisionAPI {
 
-  def apply[F[_]: Async](
+  def apply[F[_]: Effect](
       implicit ME: MonadError[F, Throwable],
       EC: ExecutionContext): VisionAPI[F] = new VisionAPI[F] {
     type VisionResult[A] = EitherT[F, VisionError, A]

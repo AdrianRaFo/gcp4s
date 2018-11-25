@@ -1,6 +1,6 @@
 package com.adrianrafo.gcp4s
 
-import cats.effect.Async
+import cats.effect.Effect
 import com.google.cloud.vision.v1._
 
 import scala.concurrent.ExecutionContext
@@ -13,7 +13,7 @@ package object vision {
 
   def visionErrorHandler: Throwable => VisionError = (e: Throwable) => VisionError(e.getMessage)
 
-  implicit def imageAnnotatorClientOps[F[_]: Async](client: ImageAnnotatorClient)(
+  implicit def imageAnnotatorClientOps[F[_]: Effect](client: ImageAnnotatorClient)(
       implicit EX: ExecutionContext): ImageAnnotatorClientOps[F] =
     new ImageAnnotatorClientOps[F](client)
 

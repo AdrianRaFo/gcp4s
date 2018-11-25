@@ -1,16 +1,16 @@
 package com.adrianrafo.gcp4s.vision
 
-import cats.effect.Async
+import cats.effect.Effect
 import cats.syntax.either._
 import com.adrianrafo.gcp4s.ErrorHandlerService
 import com.google.cloud.vision.v1._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 private[vision] object syntax {
 
   final class ImageAnnotatorClientOps[F[_]](client: ImageAnnotatorClient)(
-      implicit A: Async[F],
+      implicit E: Effect[F],
       EC: ExecutionContext) {
 
     import scala.collection.JavaConverters._
@@ -21,13 +21,13 @@ private[vision] object syntax {
     def sendRequest(
         requests: AnnotateImageRequest): F[Either[VisionError, BatchAnnotateImagesResponse]] =
       ErrorHandlerService.asyncHandleError(
-        Future(client.batchAnnotateImagesCallable.futureCall(toBatchRequest(List(requests))).get()),
+        client.batchAnnotateImagesCallable.futureCall(toBatchRequest(List(requests))).get(),
         visionErrorHandler)
 
     def sendRequestBatch(
         requests: List[AnnotateImageRequest]): F[Either[VisionError, BatchAnnotateImagesResponse]] =
       ErrorHandlerService.asyncHandleError(
-        Future(client.batchAnnotateImagesCallable.futureCall(toBatchRequest(requests)).get),
+        client.batchAnnotateImagesCallable.futureCall(toBatchRequest(requests)).get(),
         visionErrorHandler)
 
   }
