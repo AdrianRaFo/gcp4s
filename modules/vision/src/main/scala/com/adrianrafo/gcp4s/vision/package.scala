@@ -1,5 +1,6 @@
 package com.adrianrafo.gcp4s
 
+import cats.data.EitherT
 import cats.effect.Effect
 import com.google.cloud.vision.v1._
 
@@ -9,7 +10,8 @@ package object vision {
 
   import syntax._
 
-  type VisionResponse = Either[VisionError, List[VisionLabel]]
+  type VisionResult[F[_], A] = EitherT[F, VisionError, A]
+  type VisionLabelResponse        = Either[VisionError, List[VisionLabel]]
 
   def visionErrorHandler: Throwable => VisionError = (e: Throwable) => VisionError(e.getMessage)
 

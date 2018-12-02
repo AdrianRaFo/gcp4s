@@ -6,15 +6,15 @@ import org.scalatest._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class VisionAPITest extends FunSuite with Matchers {
+class VisionImageAPITest extends FunSuite with Matchers {
 
-  val service = VisionAPI[IO]
+  val service = VisionImageAPI[IO]
 
   test("VisionService should get labels for an image") {
     val path = "./modules/vision/src/it/resources/hand.jpg"
     val response = service
       .createClient(None)
-      .flatMap(service.processImage(_, Type.LABEL_DETECTION, Left(path), None))
+      .flatMap(service.labelImage(_, Type.LABEL_DETECTION, Left(path), None))
       .unsafeRunSync()
     println(response)
     response shouldBe 'right
