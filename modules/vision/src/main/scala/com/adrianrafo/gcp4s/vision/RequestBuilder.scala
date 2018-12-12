@@ -1,15 +1,14 @@
 package com.adrianrafo.gcp4s.vision
-import java.nio.file._
 
 import cats.data.EitherT
 import cats.effect.Effect
 import com.adrianrafo.gcp4s.ErrorHandlerService
 import com.google.cloud.vision.v1._
 import com.google.protobuf.ByteString
-
+import java.nio.file._
 import scala.collection.JavaConverters._
 
-object utils {
+object RequestBuilder {
 
   def toBatchRequest(requests: List[AnnotateImageRequest]): BatchAnnotateImagesRequest =
     BatchAnnotateImagesRequest.newBuilder().addAllRequests(requests.asJava).build()

@@ -4,6 +4,7 @@ import cats.data.EitherT
 import cats.effect.Effect
 import cats.syntax.either._
 import com.adrianrafo.gcp4s.ErrorHandlerService
+import com.adrianrafo.gcp4s.vision.ResponseHandler._
 import com.google.cloud.vision.v1._
 
 import scala.concurrent.ExecutionContext
@@ -24,48 +25,31 @@ private[vision] object syntax {
 
   }
 
-  final class BatchAnnotateImagesResponseOps(response: BatchAnnotateImagesResponse) {
+  final class BatchAnnotateImagesResponseOps(batchImageResponse: BatchAnnotateImagesResponse) {
 
     import scala.collection.JavaConverters._
 
-    private def getPercentScore(score: Float): Int = (score * 100).toInt
-
-    private def handleLabelResponse(response: AnnotateImageResponse): VisionLabelResponse =
-      response match {
-        case res if res.hasError =>
-          VisionError(s"Error: ${res.getError}").asLeft[List[VisionLabel]]
-        case res if !res.hasError =>
-          res.getLabelAnnotationsList.asScala.toList
-            .map(tag => VisionLabel(tag.getDescription, getPercentScore(tag.getScore)))
-            .asRight[VisionError]
-      }
-
-    def processLabels: VisionLabelResponse =
-      handleLabelResponse(response.getResponses(0))
-
-    def processLabelsPerImage: List[VisionLabelResponse] = {
-      response.getResponsesList.asScala
-        .foldRight(List.empty[Either[VisionError, List[VisionLabel]]]) {
-          case (res, list) => list :+ handleLabelResponse(res)
+    private def handleVisionResponse[A](
+        handleResponse: AnnotateImageResponse => A): List[VisionResponse[A]] =
+      batchImageResponse.getResponsesList.asScala
+        .foldLeft(List.empty[VisionResponse[A]]) {
+          case (list, res) => list :+ handleErrors(res, handleResponse)
         }
-    }
 
-    def processText = ???
-    /*List<AnnotateImageResponse> responses = response.getResponsesList();
+    def processLabels: VisionResponse[List[VisionLabel]] =
+      handleErrors(batchImageResponse.getResponses(0), handleLabelResponse)
 
-    for (AnnotateImageResponse res : responses) {
-      if (res.hasError()) {
-        out.printf("Error: %s\n", res.getError().getMessage());
-        return;
-      }
+    def processLabelsPerImage: VisionBatchResponse[List[VisionLabel]] =
+      handleVisionResponse(handleLabelResponse)
 
-      // For full list of available annotations, see http://g.co/cloud/vision/docs
-      for (EntityAnnotation annotation : res.getTextAnnotationsList()) {
-        out.printf("Text: %s\n", annotation.getDescription());
-        out.printf("Position : %s\n", annotation.getBoundingPoly());
-      }*/
+    def processText: VisionResponse[List[VisionText]] =
+      handleErrors(batchImageResponse.getResponses(0), handleTextResponse)
+
+    def processTextPerImage: VisionBatchResponse[List[VisionText]] =
+      handleVisionResponse(handleTextResponse)
 
     def processDocumentText = ???
+    def processDocumentTextPerImage = ???
     /*  // For full list of available annotations, see http://g.co/cloud/vision/docs
       TextAnnotation annotation = res.getFullTextAnnotation();
     for (Page page: annotation.getPagesList()) {
@@ -97,6 +81,7 @@ private[vision] object syntax {
   }*/
 
     def processFace = ???
+    def processFacePerImage = ???
     /*public static void detectFaces(String filePath, PrintStream out) throws Exception, IOException {
 
         List<AnnotateImageResponse> responses = response.getResponsesList();
@@ -121,6 +106,7 @@ private[vision] object syntax {
     }*/
 
     def processLogo = ???
+    def processLogoPerImage = ???
     /*public static void detectLogos(String filePath, PrintStream out) throws Exception, IOException {
 
         List<AnnotateImageResponse> responses = response.getResponsesList();
@@ -140,6 +126,7 @@ private[vision] object syntax {
     }*/
 
     def processCropHints = ???
+    def processCropHintsPerImage = ???
     /*
         List<AnnotateImageResponse> responses = response.getResponsesList();
 
@@ -159,6 +146,7 @@ private[vision] object syntax {
     }*/
 
     def processLandmark = ???
+    def processLandmarkPerImage = ???
     /*
         List<AnnotateImageResponse> responses = response.getResponsesList();
 
@@ -178,6 +166,7 @@ private[vision] object syntax {
     }*/
 
     def processImageProperties = ???
+    def processImagePropertiesPerImage = ???
     /*
         List<AnnotateImageResponse> responses = response.getResponsesList();
 
@@ -202,6 +191,7 @@ private[vision] object syntax {
     }*/
 
     def processSafeSearch = ???
+    def processSafeSearchPerImage = ???
     /*
         List<AnnotateImageResponse> responses = response.getResponsesList();
 
@@ -225,6 +215,7 @@ private[vision] object syntax {
     }*/
 
     def processWebEntities = ???
+    def processWebEntitiesPerImage = ???
     /*
         List<AnnotateImageResponse> responses = response.getResponsesList();
 
@@ -268,6 +259,7 @@ private[vision] object syntax {
     }*/
 
     def processObjectDetection = ???
+    def processObjectDetectionPerImage = ???
     /*
         List<AnnotateImageResponse> responses = response.getResponsesList();
 

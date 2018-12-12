@@ -5,7 +5,7 @@ import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.traverse._
 import com.google.cloud.vision.v1._
-import com.adrianrafo.gcp4s.vision.utils._
+import com.adrianrafo.gcp4s.vision.RequestBuilder._
 
 import scala.concurrent.ExecutionContext
 
@@ -16,13 +16,13 @@ trait VisionImageAPI[F[_]] {
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
       context: Option[ImageContext],
-      maxResults: Option[Int]): F[VisionLabelResponse]
+      maxResults: Option[Int]): F[VisionResponse[List[VisionLabel]]]
 
   def labelImageBatch(
       client: ImageAnnotatorClient,
       fileList: List[Either[String, ImageSource]],
       context: Option[ImageContext],
-      maxResults: Option[Int]): F[List[VisionLabelResponse]]
+      maxResults: Option[Int]): F[VisionBatchResponse[List[VisionLabel]]]
 
   /**
    * To detect handwritten text:
@@ -31,7 +31,7 @@ trait VisionImageAPI[F[_]] {
   def textDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[VisionText]]
 
   /**
    * To detect handwritten text:
@@ -40,47 +40,47 @@ trait VisionImageAPI[F[_]] {
   def documentTextDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[VisionDocument]]
 
   def faceDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[List[VisionFace]]]
 
   def logoDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[List[VisionLogo]]]
 
   def cropHints(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[List[VisionCropHints]]]
 
   def landmarkDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[List[VisionLandMark]]]
 
   def imagePropertiesDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[List[VisionImageProperties]]]
 
   def safeSearchDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[VisionSafeSearch]]
 
   def webEntitiesDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[List[VisionWebEntity]]]
 
   def objectDetection(
       client: ImageAnnotatorClient,
       filePath: Either[String, ImageSource],
-      context: Option[ImageContext]): F[VisionLabelResponse]
+      context: Option[ImageContext]): F[VisionResponse[List[VisionObject]]]
 
 }
 object VisionImageAPI {
@@ -96,7 +96,7 @@ object VisionImageAPI {
           client: ImageAnnotatorClient,
           filePath: Either[String, ImageSource],
           context: Option[ImageContext],
-          maxResults: Option[Int]): F[VisionLabelResponse] =
+          maxResults: Option[Int]): F[VisionResponse[List[VisionLabel]]] =
         (for {
           request  <- buildImageRequest(filePath, Feature.Type.LABEL_DETECTION, context, maxResults)
           response <- client.sendRequest(toBatchRequest(List(request))).subflatMap(_.processLabels)
@@ -106,7 +106,7 @@ object VisionImageAPI {
           client: ImageAnnotatorClient,
           fileList: List[Either[String, ImageSource]],
           context: Option[ImageContext],
-          maxResults: Option[Int]): F[List[VisionLabelResponse]] = {
+          maxResults: Option[Int]): F[VisionBatchResponse[List[VisionLabel]]] = {
 
         def getBatchRequest: VisionApiResult[List[AnnotateImageRequest]] =
           fileList.traverse[VisionApiResult, AnnotateImageRequest](filePath =>
@@ -121,8 +121,8 @@ object VisionImageAPI {
 
       override def textDetection(
           client: ImageAnnotatorClient,
-          filePath: scala.Either[String, ImageSource],
-          context: Option[ImageContext]): F[VisionLabelResponse] = ???
+          filePath: Either[String, ImageSource],
+          context: Option[ImageContext]) = ???
 
       override def documentTextDetection(
           client: ImageAnnotatorClient,
