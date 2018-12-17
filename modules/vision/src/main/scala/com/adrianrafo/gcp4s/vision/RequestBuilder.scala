@@ -29,8 +29,10 @@ object RequestBuilder {
         .fold(
           filePath =>
             getPath(filePath)
-              .map(path =>
-                builder.setContent(ByteString.copyFrom(Files.readAllBytes(path))).build()),
+              .flatMap(path =>
+                ErrorHandlerService
+                  .handleError(ByteString.copyFrom(Files.readAllBytes(path)), visionErrorHandler))
+              .map(builder.setContent(_).build()),
           source => EitherT.rightT[F, VisionError](builder.setSource(source).build())
         )
     }

@@ -21,7 +21,7 @@ object ResponseHandler {
     res.getLabelAnnotationsList.asScala.toList
       .map(tag => VisionLabel(tag.getDescription, getPercentScore(tag.getScore)))
 
-  def handleTextResponse(res: AnnotateImageResponse) = {
+  def handleTextResponse(res: AnnotateImageResponse): List[VisionText] = {
 
     def buildCoordinates(boundingPoly: BoundingPoly): VisionCoordinates = {
       val vertex      = boundingPoly.getVerticesList

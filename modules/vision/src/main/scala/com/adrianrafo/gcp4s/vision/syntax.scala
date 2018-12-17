@@ -48,37 +48,25 @@ private[vision] object syntax {
     def processTextPerImage: VisionBatchResponse[List[VisionText]] =
       handleVisionResponse(handleTextResponse)
 
-    def processDocumentText = ???
-    def processDocumentTextPerImage = ???
-    /*  // For full list of available annotations, see http://g.co/cloud/vision/docs
-      TextAnnotation annotation = res.getFullTextAnnotation();
-    for (Page page: annotation.getPagesList()) {
-      String pageText = "";
-      for (Block block : page.getBlocksList()) {
-        String blockText = "";
-        for (Paragraph para : block.getParagraphsList()) {
-          String paraText = "";
-          for (Word word: para.getWordsList()) {
-            String wordText = "";
-            for (Symbol symbol: word.getSymbolsList()) {
-              wordText = wordText + symbol.getText();
-              out.format("Symbol text: %s (confidence: %f)\n", symbol.getText(),
-                symbol.getConfidence());
-            }
-            out.format("Word text: %s (confidence: %f)\n\n", wordText, word.getConfidence());
-            paraText = String.format("%s %s", paraText, wordText);
+    def processObjectDetection = ???
+    def processObjectDetectionPerImage = ???
+    /*
+        List<AnnotateImageResponse> responses = response.getResponsesList();
+
+        // Display the results
+        for (AnnotateImageResponse res : responses) {
+          for (LocalizedObjectAnnotation entity : res.getLocalizedObjectAnnotationsList()) {
+            out.format("Object name: %s\n", entity.getName());
+            out.format("Confidence: %s\n", entity.getScore());
+            out.format("Normalized Vertices:\n");
+            entity
+                .getBoundingPoly()
+                .getNormalizedVerticesList()
+                .forEach(vertex -> out.format("- (%s, %s)\n", vertex.getX(), vertex.getY()));
           }
-          // Output Example using Paragraph:
-          out.println("\nParagraph: \n" + paraText);
-          out.format("Paragraph Confidence: %f\n", para.getConfidence());
-          blockText = blockText + paraText;
         }
-        pageText = pageText + blockText;
       }
-    }
-    out.println("\nComplete annotation:");
-    out.println(annotation.getText());
-  }*/
+    }*/
 
     def processFace = ???
     def processFacePerImage = ???
@@ -92,7 +80,6 @@ private[vision] object syntax {
             return;
           }
 
-          // For full list of available annotations, see http://g.co/cloud/vision/docs
           for (FaceAnnotation annotation : res.getFaceAnnotationsList()) {
             out.printf(
               "anger: %s\njoy: %s\nsurprise: %s\nposition: %s",
@@ -117,29 +104,8 @@ private[vision] object syntax {
             return;
           }
 
-          // For full list of available annotations, see http://g.co/cloud/vision/docs
           for (EntityAnnotation annotation : res.getLogoAnnotationsList()) {
             out.println(annotation.getDescription());
-          }
-        }
-      }
-    }*/
-
-    def processCropHints = ???
-    def processCropHintsPerImage = ???
-    /*
-        List<AnnotateImageResponse> responses = response.getResponsesList();
-
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
-
-          // For full list of available annotations, see http://g.co/cloud/vision/docs
-          CropHintsAnnotation annotation = res.getCropHintsAnnotation();
-          for (CropHint hint : annotation.getCropHintsList()) {
-            out.println(hint.getBoundingPoly());
           }
         }
       }
@@ -156,35 +122,9 @@ private[vision] object syntax {
             return;
           }
 
-          // For full list of available annotations, see http://g.co/cloud/vision/docs
           for (EntityAnnotation annotation : res.getLandmarkAnnotationsList()) {
             LocationInfo info = annotation.getLocationsList().listIterator().next();
             out.printf("Landmark: %s\n %s\n", annotation.getDescription(), info.getLatLng());
-          }
-        }
-      }
-    }*/
-
-    def processImageProperties = ???
-    def processImagePropertiesPerImage = ???
-    /*
-        List<AnnotateImageResponse> responses = response.getResponsesList();
-
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
-
-          // For full list of available annotations, see http://g.co/cloud/vision/docs
-          DominantColorsAnnotation colors = res.getImagePropertiesAnnotation().getDominantColors();
-          for (ColorInfo color : colors.getColorsList()) {
-            out.printf(
-              "fraction: %f\nr: %f, g: %f, b: %f\n",
-              color.getPixelFraction(),
-              color.getColor().getRed(),
-              color.getColor().getGreen(),
-              color.getColor().getBlue());
           }
         }
       }
@@ -201,7 +141,6 @@ private[vision] object syntax {
             return;
           }
 
-          // For full list of available annotations, see http://g.co/cloud/vision/docs
           SafeSearchAnnotation annotation = res.getSafeSearchAnnotation();
           out.printf(
             "adult: %s\nmedical: %s\nspoofed: %s\nviolence: %s\nracy: %s\n",
@@ -225,9 +164,6 @@ private[vision] object syntax {
             return;
           }
 
-          // Search the web for usages of the image. You could use these signals later
-          // for user input moderation or linking external references.
-          // For a full list of available annotations, see http://g.co/cloud/vision/docs
           WebDetection annotation = res.getWebDetection();
           out.println("Entity:Id:Score");
           out.println("===============");
@@ -258,21 +194,76 @@ private[vision] object syntax {
       }
     }*/
 
-    def processObjectDetection = ???
-    def processObjectDetectionPerImage = ???
+    def processCropHints = ???
+    def processCropHintsPerImage = ???
     /*
         List<AnnotateImageResponse> responses = response.getResponsesList();
 
-        // Display the results
         for (AnnotateImageResponse res : responses) {
-          for (LocalizedObjectAnnotation entity : res.getLocalizedObjectAnnotationsList()) {
-            out.format("Object name: %s\n", entity.getName());
-            out.format("Confidence: %s\n", entity.getScore());
-            out.format("Normalized Vertices:\n");
-            entity
-                .getBoundingPoly()
-                .getNormalizedVerticesList()
-                .forEach(vertex -> out.format("- (%s, %s)\n", vertex.getX(), vertex.getY()));
+          if (res.hasError()) {
+            out.printf("Error: %s\n", res.getError().getMessage());
+            return;
+          }
+
+          CropHintsAnnotation annotation = res.getCropHintsAnnotation();
+          for (CropHint hint : annotation.getCropHintsList()) {
+            out.println(hint.getBoundingPoly());
+          }
+        }
+      }
+    }*/
+
+    def processDocumentText = ???
+    def processDocumentTextPerImage = ???
+    /*
+      TextAnnotation annotation = res.getFullTextAnnotation();
+    for (Page page: annotation.getPagesList()) {
+      String pageText = "";
+      for (Block block : page.getBlocksList()) {
+        String blockText = "";
+        for (Paragraph para : block.getParagraphsList()) {
+          String paraText = "";
+          for (Word word: para.getWordsList()) {
+            String wordText = "";
+            for (Symbol symbol: word.getSymbolsList()) {
+              wordText = wordText + symbol.getText();
+              out.format("Symbol text: %s (confidence: %f)\n", symbol.getText(),
+                symbol.getConfidence());
+            }
+            out.format("Word text: %s (confidence: %f)\n\n", wordText, word.getConfidence());
+            paraText = String.format("%s %s", paraText, wordText);
+          }
+          // Output Example using Paragraph:
+          out.println("\nParagraph: \n" + paraText);
+          out.format("Paragraph Confidence: %f\n", para.getConfidence());
+          blockText = blockText + paraText;
+        }
+        pageText = pageText + blockText;
+      }
+    }
+    out.println("\nComplete annotation:");
+    out.println(annotation.getText());
+  }*/
+
+    def processImageProperties = ???
+    def processImagePropertiesPerImage = ???
+    /*
+        List<AnnotateImageResponse> responses = response.getResponsesList();
+
+        for (AnnotateImageResponse res : responses) {
+          if (res.hasError()) {
+            out.printf("Error: %s\n", res.getError().getMessage());
+            return;
+          }
+
+          DominantColorsAnnotation colors = res.getImagePropertiesAnnotation().getDominantColors();
+          for (ColorInfo color : colors.getColorsList()) {
+            out.printf(
+              "fraction: %f\nr: %f, g: %f, b: %f\n",
+              color.getPixelFraction(),
+              color.getColor().getRed(),
+              color.getColor().getGreen(),
+              color.getColor().getBlue());
           }
         }
       }
