@@ -2,7 +2,6 @@ package com.adrianrafo.gcp4s.vision
 
 import cats.data.EitherT
 import cats.effect.Effect
-import cats.syntax.either._
 import com.adrianrafo.gcp4s.ErrorHandlerService
 import com.adrianrafo.gcp4s.vision.ResponseHandler._
 import com.google.cloud.vision.v1._
@@ -48,226 +47,50 @@ private[vision] object syntax {
     def processTextPerImage: VisionBatchResponse[List[VisionText]] =
       handleVisionResponse(handleTextResponse)
 
-    def processObjectDetection = ???
-    def processObjectDetectionPerImage = ???
-    /*
-        List<AnnotateImageResponse> responses = response.getResponsesList();
+    def processObjectDetection =
+      handleErrors(batchImageResponse.getResponses(0), handleObjectResponse)
+    def processObjectDetectionPerImage =
+      handleVisionResponse(handleObjectResponse)
 
-        // Display the results
-        for (AnnotateImageResponse res : responses) {
-          for (LocalizedObjectAnnotation entity : res.getLocalizedObjectAnnotationsList()) {
-            out.format("Object name: %s\n", entity.getName());
-            out.format("Confidence: %s\n", entity.getScore());
-            out.format("Normalized Vertices:\n");
-            entity
-                .getBoundingPoly()
-                .getNormalizedVerticesList()
-                .forEach(vertex -> out.format("- (%s, %s)\n", vertex.getX(), vertex.getY()));
-          }
-        }
-      }
-    }*/
+    def processFace =
+      handleErrors(batchImageResponse.getResponses(0), handleFaceResponse)
+    def processFacePerImage =
+      handleVisionResponse(handleFaceResponse)
 
-    def processFace = ???
-    def processFacePerImage = ???
-    /*public static void detectFaces(String filePath, PrintStream out) throws Exception, IOException {
+    def processLogo =
+      handleErrors(batchImageResponse.getResponses(0), handleLogoResponse)
+    def processLogoPerImage =
+      handleVisionResponse(handleLogoResponse)
 
-        List<AnnotateImageResponse> responses = response.getResponsesList();
+    def processLandmark =
+      handleErrors(batchImageResponse.getResponses(0), handleLandmarkResponse)
+    def processLandmarkPerImage =
+      handleVisionResponse(handleLandmarkResponse)
 
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
+    def processSafeSearch =
+      handleErrors(batchImageResponse.getResponses(0), handleSafeSearchResponse)
+    def processSafeSearchPerImage =
+      handleVisionResponse(handleSafeSearchResponse)
 
-          for (FaceAnnotation annotation : res.getFaceAnnotationsList()) {
-            out.printf(
-              "anger: %s\njoy: %s\nsurprise: %s\nposition: %s",
-              annotation.getAngerLikelihood(),
-              annotation.getJoyLikelihood(),
-              annotation.getSurpriseLikelihood(),
-              annotation.getBoundingPoly());
-          }
-        }
-      }
-    }*/
+    def processWebEntities =
+      handleErrors(batchImageResponse.getResponses(0), handleWebEntitiesResponse)
+    def processWebEntitiesPerImage =
+      handleVisionResponse(handleWebEntitiesResponse)
 
-    def processLogo = ???
-    def processLogoPerImage = ???
-    /*public static void detectLogos(String filePath, PrintStream out) throws Exception, IOException {
+    def processCropHints =
+      handleErrors(batchImageResponse.getResponses(0), handleCropHintsResponse)
+    def processCropHintsPerImage =
+      handleVisionResponse(handleCropHintsResponse)
 
-        List<AnnotateImageResponse> responses = response.getResponsesList();
+    def processDocumentText =
+      handleErrors(batchImageResponse.getResponses(0), handleDocumentTextResponse)
+    def processDocumentTextPerImage =
+      handleVisionResponse(handleDocumentTextResponse)
 
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
-
-          for (EntityAnnotation annotation : res.getLogoAnnotationsList()) {
-            out.println(annotation.getDescription());
-          }
-        }
-      }
-    }*/
-
-    def processLandmark = ???
-    def processLandmarkPerImage = ???
-    /*
-        List<AnnotateImageResponse> responses = response.getResponsesList();
-
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
-
-          for (EntityAnnotation annotation : res.getLandmarkAnnotationsList()) {
-            LocationInfo info = annotation.getLocationsList().listIterator().next();
-            out.printf("Landmark: %s\n %s\n", annotation.getDescription(), info.getLatLng());
-          }
-        }
-      }
-    }*/
-
-    def processSafeSearch = ???
-    def processSafeSearchPerImage = ???
-    /*
-        List<AnnotateImageResponse> responses = response.getResponsesList();
-
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
-
-          SafeSearchAnnotation annotation = res.getSafeSearchAnnotation();
-          out.printf(
-            "adult: %s\nmedical: %s\nspoofed: %s\nviolence: %s\nracy: %s\n",
-            annotation.getAdult(),
-            annotation.getMedical(),
-            annotation.getSpoof(),
-            annotation.getViolence(),
-            annotation.getRacy());
-        }
-      }
-    }*/
-
-    def processWebEntities = ???
-    def processWebEntitiesPerImage = ???
-    /*
-        List<AnnotateImageResponse> responses = response.getResponsesList();
-
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
-
-          WebDetection annotation = res.getWebDetection();
-          out.println("Entity:Id:Score");
-          out.println("===============");
-          for (WebEntity entity : annotation.getWebEntitiesList()) {
-            out.println(entity.getDescription() + " : " + entity.getEntityId() + " : "
-                + entity.getScore());
-          }
-          for (WebLabel label : annotation.getBestGuessLabelsList()) {
-            out.format("\nBest guess label: %s", label.getLabel());
-          }
-          out.println("\nPages with matching images: Score\n==");
-          for (WebPage page : annotation.getPagesWithMatchingImagesList()) {
-            out.println(page.getUrl() + " : " + page.getScore());
-          }
-          out.println("\nPages with partially matching images: Score\n==");
-          for (WebImage image : annotation.getPartialMatchingImagesList()) {
-            out.println(image.getUrl() + " : " + image.getScore());
-          }
-          out.println("\nPages with fully matching images: Score\n==");
-          for (WebImage image : annotation.getFullMatchingImagesList()) {
-            out.println(image.getUrl() + " : " + image.getScore());
-          }
-          out.println("\nPages with visually similar images: Score\n==");
-          for (WebImage image : annotation.getVisuallySimilarImagesList()) {
-            out.println(image.getUrl() + " : " + image.getScore());
-          }
-        }
-      }
-    }*/
-
-    def processCropHints = ???
-    def processCropHintsPerImage = ???
-    /*
-        List<AnnotateImageResponse> responses = response.getResponsesList();
-
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
-
-          CropHintsAnnotation annotation = res.getCropHintsAnnotation();
-          for (CropHint hint : annotation.getCropHintsList()) {
-            out.println(hint.getBoundingPoly());
-          }
-        }
-      }
-    }*/
-
-    def processDocumentText = ???
-    def processDocumentTextPerImage = ???
-    /*
-      TextAnnotation annotation = res.getFullTextAnnotation();
-    for (Page page: annotation.getPagesList()) {
-      String pageText = "";
-      for (Block block : page.getBlocksList()) {
-        String blockText = "";
-        for (Paragraph para : block.getParagraphsList()) {
-          String paraText = "";
-          for (Word word: para.getWordsList()) {
-            String wordText = "";
-            for (Symbol symbol: word.getSymbolsList()) {
-              wordText = wordText + symbol.getText();
-              out.format("Symbol text: %s (confidence: %f)\n", symbol.getText(),
-                symbol.getConfidence());
-            }
-            out.format("Word text: %s (confidence: %f)\n\n", wordText, word.getConfidence());
-            paraText = String.format("%s %s", paraText, wordText);
-          }
-          // Output Example using Paragraph:
-          out.println("\nParagraph: \n" + paraText);
-          out.format("Paragraph Confidence: %f\n", para.getConfidence());
-          blockText = blockText + paraText;
-        }
-        pageText = pageText + blockText;
-      }
-    }
-    out.println("\nComplete annotation:");
-    out.println(annotation.getText());
-  }*/
-
-    def processImageProperties = ???
-    def processImagePropertiesPerImage = ???
-    /*
-        List<AnnotateImageResponse> responses = response.getResponsesList();
-
-        for (AnnotateImageResponse res : responses) {
-          if (res.hasError()) {
-            out.printf("Error: %s\n", res.getError().getMessage());
-            return;
-          }
-
-          DominantColorsAnnotation colors = res.getImagePropertiesAnnotation().getDominantColors();
-          for (ColorInfo color : colors.getColorsList()) {
-            out.printf(
-              "fraction: %f\nr: %f, g: %f, b: %f\n",
-              color.getPixelFraction(),
-              color.getColor().getRed(),
-              color.getColor().getGreen(),
-              color.getColor().getBlue());
-          }
-        }
-      }
-    }*/
+    def processImageProperties =
+      handleErrors(batchImageResponse.getResponses(0), handleImagePropertiesResponse)
+    def processImagePropertiesPerImage =
+      handleVisionResponse(handleImagePropertiesResponse)
 
   }
 
