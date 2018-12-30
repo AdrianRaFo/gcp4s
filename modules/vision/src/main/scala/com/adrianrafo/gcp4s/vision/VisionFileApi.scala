@@ -1,6 +1,7 @@
 package com.adrianrafo.gcp4s.vision
 
 class VisionFileApi {
+
   /**
   public static void detectDocumentsGcs(String gcsSourcePath, String gcsDestinationPath) throws
       Exception {

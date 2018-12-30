@@ -1,24 +1,25 @@
 package com.adrianrafo.gcp4s.vision
 
 import cats.syntax.either._
+import com.google.cloud.vision.v1.TextAnnotation.TextProperty
 import com.google.cloud.vision.v1.WebDetection.WebImage
 import com.google.cloud.vision.v1._
+
 import scala.collection.JavaConverters._
-import scala.collection.mutable.Buffer
 
 object ResponseHandler {
 
-  def getPercentScore(score: Float): Int = (score * 100).toInt
-
   def handleErrors[A](
       response: AnnotateImageResponse,
-      handleResponse: AnnotateImageResponse => A): Either[VisionError, A] =
+      handleResponse: AnnotateImageResponse => A): VisionResponse[A] =
     response match {
       case res if res.hasError => VisionError(s"Error: ${res.getError}").asLeft[A]
       case res                 => handleResponse(res).asRight[VisionError]
     }
 
-  def buildCoordinates(boundingPoly: BoundingPoly, normalized: Boolean): VisionPosition = {
+  private def getConfidence(score: Float): Int = (score * 100).toInt
+
+  private def getPosition(boundingPoly: BoundingPoly, normalized: Boolean): VisionPosition = {
 
     def toVisionVertex(vertex: Vertex)                     = VisionVertex(vertex.getX.toFloat, vertex.getY.toFloat)
     def toNormalizedVisionVertex(vertex: NormalizedVertex) = VisionVertex(vertex.getX, vertex.getY)
@@ -30,47 +31,62 @@ object ResponseHandler {
     VisionPosition(vertices.toList)
   }
 
-  def handleLabelResponse(res: AnnotateImageResponse): List[VisionLabel] =
-    res.getLabelAnnotationsList.asScala.toList
-      .map(tag => VisionLabel(tag.getDescription, getPercentScore(tag.getScore)))
+  def handleLabelResponse(res: AnnotateImageResponse): VisionLabelResponse = {
+    val labels = res.getLabelAnnotationsList.asScala.toList
+      .map(tag => VisionLabel(tag.getDescription, getConfidence(tag.getScore)))
 
-  def handleTextResponse(res: AnnotateImageResponse): List[VisionText] =
-    res.getTextAnnotationsList.asScala.toList.map(
+    VisionLabelResponse(labels)
+  }
+
+  def handleTextResponse(res: AnnotateImageResponse): VisionTextResponse = {
+    val texts = res.getTextAnnotationsList.asScala.toList.map(
       text =>
         VisionText(
           text.getDescription,
           text.getLocale,
-          getPercentScore(text.getScore),
-          buildCoordinates(text.getBoundingPoly, false)))
+          getConfidence(text.getScore),
+          getPosition(text.getBoundingPoly, false)))
 
-  def handleObjectResponse(res: AnnotateImageResponse): List[VisionObject] =
-    res.getLocalizedObjectAnnotationsList.asScala.toList.map(
+    VisionTextResponse(texts)
+  }
+
+  def handleObjectResponse(res: AnnotateImageResponse): VisionObjectResponse = {
+    val objects = res.getLocalizedObjectAnnotationsList.asScala.toList.map(
       entity =>
         VisionObject(
           entity.getName,
-          getPercentScore(entity.getScore),
-          buildCoordinates(entity.getBoundingPoly, true)))
+          getConfidence(entity.getScore),
+          getPosition(entity.getBoundingPoly, true)))
 
-  def handleFaceResponse(res: AnnotateImageResponse): List[VisionFace] =
-    res.getFaceAnnotationsList.asScala.toList.map(
+    VisionObjectResponse(objects)
+  }
+
+  def handleFaceResponse(res: AnnotateImageResponse): VisionFaceResponse = {
+    val faces = res.getFaceAnnotationsList.asScala.toList.map(
       annotation =>
         VisionFace(
-          Grade.toGrade(annotation.getJoyLikelihoodValue),
-          Grade.toGrade(annotation.getSurpriseLikelihoodValue),
-          Grade.toGrade(annotation.getAngerLikelihoodValue),
-          buildCoordinates(annotation.getBoundingPoly, true)
+          Grade.fromValue(annotation.getJoyLikelihoodValue),
+          Grade.fromValue(annotation.getSurpriseLikelihoodValue),
+          Grade.fromValue(annotation.getAngerLikelihoodValue),
+          getPosition(annotation.getBoundingPoly, true)
       ))
 
-  def handleLogoResponse(res: AnnotateImageResponse): List[VisionLogo] =
-    res.getLogoAnnotationsList.asScala.toList.map(
+    VisionFaceResponse(faces)
+  }
+
+  def handleLogoResponse(res: AnnotateImageResponse): VisionLogoResponse = {
+    val logos = res.getLogoAnnotationsList.asScala.toList.map(
       annotation =>
         VisionLogo(
           annotation.getDescription,
-          getPercentScore(annotation.getScore),
-          buildCoordinates(annotation.getBoundingPoly, false)))
+          getConfidence(annotation.getScore),
+          getPosition(annotation.getBoundingPoly, false)))
 
-  def handleLandmarkResponse(res: AnnotateImageResponse): List[VisionLandMark] =
-    res.getLandmarkAnnotationsList.asScala.toList.map { annotation =>
+    VisionLogoResponse(logos)
+  }
+
+  def handleLandmarkResponse(res: AnnotateImageResponse): VisionLandMarkResponse = {
+    val landmarks = res.getLandmarkAnnotationsList.asScala.toList.map { annotation =>
       val coord: List[VisionCoordinates] = annotation.getLocationsList.asScala.toList.map(
         locationInfo =>
           VisionCoordinates(
@@ -79,18 +95,21 @@ object ResponseHandler {
 
       VisionLandMark(
         annotation.getDescription,
-        getPercentScore(annotation.getScore),
+        getConfidence(annotation.getScore),
         VisionLocation(coord))
     }
+
+    VisionLandMarkResponse(landmarks)
+  }
 
   def handleSafeSearchResponse(res: AnnotateImageResponse): VisionSafeSearch = {
     val annotation = res.getSafeSearchAnnotation
     VisionSafeSearch(
-      Grade.toGrade(annotation.getAdultValue),
-      Grade.toGrade(annotation.getMedicalValue),
-      Grade.toGrade(annotation.getSpoofValue),
-      Grade.toGrade(annotation.getViolenceValue),
-      Grade.toGrade(annotation.getRacyValue)
+      Grade.fromValue(annotation.getAdultValue),
+      Grade.fromValue(annotation.getMedicalValue),
+      Grade.fromValue(annotation.getSpoofValue),
+      Grade.fromValue(annotation.getViolenceValue),
+      Grade.fromValue(annotation.getRacyValue)
     )
   }
 
@@ -98,10 +117,10 @@ object ResponseHandler {
     val annotation = res.getWebDetection
 
     def getImagesMatch(images: List[WebImage], level: MatchLevel.Value): List[VisionWebImageMatch] =
-      images.map(image => VisionWebImageMatch(image.getUrl, getPercentScore(image.getScore), level))
+      images.map(image => VisionWebImageMatch(image.getUrl, getConfidence(image.getScore), level))
 
     val entities: List[VisionWebEntity] = annotation.getWebEntitiesList.asScala.toList.map(entity =>
-      VisionWebEntity(entity.getDescription, getPercentScore(entity.getScore)))
+      VisionWebEntity(entity.getDescription, getConfidence(entity.getScore)))
 
     val labels: List[VisionWebLabel] = annotation.getBestGuessLabelsList.asScala.toList.map(label =>
       VisionWebLabel(label.getLabel, label.getLanguageCode))
@@ -115,7 +134,7 @@ object ResponseHandler {
 
         val images =
           (partialImages ++ fullImages).groupBy(_.url).mapValues(_.minBy(_.level)).values.toList
-        VisionWebPageMatch(page.getPageTitle, page.getUrl, getPercentScore(page.getScore), images)
+        VisionWebPageMatch(page.getPageTitle, page.getUrl, getConfidence(page.getScore), images)
       }
 
     val partialImages: List[VisionWebImageMatch] =
@@ -135,55 +154,79 @@ object ResponseHandler {
     VisionWebDetection(entities, labels, pages, images)
   }
 
-  def handleCropHintsResponse(res: AnnotateImageResponse) = ???
-  /*
-          CropHintsAnnotation annotation = res.getCropHintsAnnotation()
-          for (CropHint hint : annotation.getCropHintsList()) {
-            out.println(hint.getBoundingPoly())
-          }
-   */
+  def handleCropHintResponse(res: AnnotateImageResponse): VisionCropHintResponse = {
+    val cropHints = res.getCropHintsAnnotation.getCropHintsList.asScala.toList.map(
+      cropHint =>
+        VisionCropHint(
+          getPosition(cropHint.getBoundingPoly, false),
+          getConfidence(cropHint.getConfidence),
+          cropHint.getImportanceFraction))
 
-  def handleDocumentTextResponse(res: AnnotateImageResponse) = ???
-  /*
-      TextAnnotation annotation = res.getFullTextAnnotation()
-    for (Page page: annotation.getPagesList()) {
-      String pageText = ""
-      for (Block block : page.getBlocksList()) {
-        String blockText = ""
-        for (Paragraph para : block.getParagraphsList()) {
-          String paraText = ""
-          for (Word word: para.getWordsList()) {
-            String wordText = ""
-            for (Symbol symbol: word.getSymbolsList()) {
-              wordText = wordText + symbol.getText()
-              out.format("Symbol text: %s (confidence: %f)\n", symbol.getText(),
-                symbol.getConfidence())
+    VisionCropHintResponse(cropHints)
+  }
+
+  def handleDocumentTextResponse(res: AnnotateImageResponse): VisionDocument = {
+
+    def getDetectedLanguages(property: TextProperty): List[VisionLanguage] =
+      property.getDetectedLanguagesList.asScala.toList.map(language =>
+        VisionLanguage(language.getLanguageCode, getConfidence(language.getConfidence)))
+
+    val annotation = res.getFullTextAnnotation
+
+    val pages: List[VisionPage] = annotation.getPagesList.asScala.toList.map { page =>
+      val blocks: List[VisionBlock] = page.getBlocksList.asScala.toList.map { block =>
+        val paragraphs: List[VisionParagraph] = block.getParagraphsList.asScala.toList.map {
+          paragraph =>
+            val words: List[VisionWord] = paragraph.getWordsList.asScala.toList.map { word =>
+              val text = word.getSymbolsList.asScala.map(_.getText).mkString
+              VisionWord(
+                text,
+                getDetectedLanguages(word.getProperty),
+                getConfidence(word.getConfidence),
+                getPosition(word.getBoundingBox, false))
             }
-            out.format("Word text: %s (confidence: %f)\n\n", wordText, word.getConfidence())
-            paraText = String.format("%s %s", paraText, wordText)
-          }
-          // Output Example using Paragraph:
-          out.println("\nParagraph: \n" + paraText)
-          out.format("Paragraph Confidence: %f\n", para.getConfidence())
-          blockText = blockText + paraText
+            VisionParagraph(
+              words.map(_.text).mkString,
+              getConfidence(paragraph.getConfidence),
+              getDetectedLanguages(paragraph.getProperty),
+              words)
         }
-        pageText = pageText + blockText
+        VisionBlock(
+          paragraphs.map(_.text).mkString,
+          getConfidence(block.getConfidence),
+          getDetectedLanguages(block.getProperty),
+          paragraphs)
       }
+      VisionPage(
+        blocks.map(_.text).mkString,
+        getConfidence(page.getConfidence),
+        getDetectedLanguages(page.getProperty),
+        page.getWidth,
+        page.getHeight,
+        blocks)
     }
-    out.println("\nComplete annotation:")
-    out.println(annotation.getText())
-   */
 
-  def handleImagePropertiesResponse(res: AnnotateImageResponse) = ???
-  /*
-          DominantColorsAnnotation colors = res.getImagePropertiesAnnotation().getDominantColors()
-          for (ColorInfo color : colors.getColorsList()) {
-            out.printf(
-              "fraction: %f\nr: %f, g: %f, b: %f\n",
-              color.getPixelFraction(),
-              color.getColor().getRed(),
-              color.getColor().getGreen(),
-              color.getColor().getBlue())
- */
+    VisionDocument(annotation.getText, pages)
+  }
+
+  def handleImagePropertiesResponse(res: AnnotateImageResponse): VisionImageProperties = {
+    val imgProperties = res.getImagePropertiesAnnotation
+
+    val colors: List[VisionColor] = if (imgProperties.hasDominantColors) {
+      imgProperties.getDominantColors.getColorsList.asScala.toList.map(
+        color =>
+          VisionColor(
+            color.getColor.getRed,
+            color.getColor.getGreen,
+            color.getColor.getBlue,
+            color.getColor.getAlpha.getValue,
+            color.getPixelFraction,
+            getConfidence(color.getScore)
+        )
+      )
+    } else List.empty
+
+    VisionImageProperties(colors)
+  }
 
 }

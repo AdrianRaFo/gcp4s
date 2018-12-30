@@ -5,10 +5,10 @@ import org.scalatest._
 class GradeSpec extends FlatSpec with Matchers {
 
   "toGrade" should "return the right Grade when a valid value is passed" in {
-    Grade.toGrade(1) shouldBe Grade.VeryUnlikely
+    Grade.fromValue(1) shouldBe Grade.VeryUnlikely
   }
   "toGrade" should "return unknown when an invalid value is passed" in {
-    Grade.toGrade(-1) shouldBe Grade.Unknown
+    Grade.fromValue(-1) shouldBe Grade.Unknown
   }
 
 }

@@ -14,7 +14,7 @@ object RequestBuilder {
     BatchAnnotateImagesRequest.newBuilder().addAllRequests(requests.asJava).build()
 
   def buildImageRequest[F[_]: Effect](
-      filePath: Either[String, ImageSource],
+      filePath: VisionSource,
       featureType: Feature.Type,
       context: Option[ImageContext],
       maxResults: Option[Int]): VisionResult[F, AnnotateImageRequest] = {

@@ -29,67 +29,67 @@ private[vision] object syntax {
     import scala.collection.JavaConverters._
 
     private def handleVisionResponse[A](
-        handleResponse: AnnotateImageResponse => A): List[VisionResponse[A]] =
+        handleResponse: AnnotateImageResponse => A): VisionBatchResponse[A] =
       batchImageResponse.getResponsesList.asScala
         .foldLeft(List.empty[VisionResponse[A]]) {
           case (list, res) => list :+ handleErrors(res, handleResponse)
         }
 
-    def processLabels: VisionResponse[List[VisionLabel]] =
+    def processLabels: VisionResponse[VisionLabelResponse] =
       handleErrors(batchImageResponse.getResponses(0), handleLabelResponse)
 
-    def processLabelsPerImage: VisionBatchResponse[List[VisionLabel]] =
+    def processLabelsPerImage: VisionBatchResponse[VisionLabelResponse] =
       handleVisionResponse(handleLabelResponse)
 
-    def processText: VisionResponse[List[VisionText]] =
+    def processText: VisionResponse[VisionTextResponse] =
       handleErrors(batchImageResponse.getResponses(0), handleTextResponse)
 
-    def processTextPerImage: VisionBatchResponse[List[VisionText]] =
+    def processTextPerImage: VisionBatchResponse[VisionTextResponse] =
       handleVisionResponse(handleTextResponse)
 
-    def processObjectDetection =
+    def processObjectDetection: VisionResponse[VisionObjectResponse] =
       handleErrors(batchImageResponse.getResponses(0), handleObjectResponse)
-    def processObjectDetectionPerImage =
+    def processObjectDetectionPerImage: VisionBatchResponse[VisionObjectResponse] =
       handleVisionResponse(handleObjectResponse)
 
-    def processFace =
+    def processFace: VisionResponse[VisionFaceResponse] =
       handleErrors(batchImageResponse.getResponses(0), handleFaceResponse)
-    def processFacePerImage =
+    def processFacePerImage: VisionBatchResponse[VisionFaceResponse] =
       handleVisionResponse(handleFaceResponse)
 
-    def processLogo =
+    def processLogo: VisionResponse[VisionLogoResponse] =
       handleErrors(batchImageResponse.getResponses(0), handleLogoResponse)
-    def processLogoPerImage =
+    def processLogoPerImage: VisionBatchResponse[VisionLogoResponse] =
       handleVisionResponse(handleLogoResponse)
 
-    def processLandmark =
+    def processLandmark: VisionResponse[VisionLandMarkResponse] =
       handleErrors(batchImageResponse.getResponses(0), handleLandmarkResponse)
-    def processLandmarkPerImage =
+    def processLandmarkPerImage: VisionBatchResponse[VisionLandMarkResponse] =
       handleVisionResponse(handleLandmarkResponse)
 
-    def processSafeSearch =
+    def processSafeSearch: VisionResponse[VisionSafeSearch] =
       handleErrors(batchImageResponse.getResponses(0), handleSafeSearchResponse)
-    def processSafeSearchPerImage =
+    def processSafeSearchPerImage: VisionBatchResponse[VisionSafeSearch] =
       handleVisionResponse(handleSafeSearchResponse)
 
-    def processWebEntities =
+    def processWebEntities: VisionResponse[VisionWebDetection] =
       handleErrors(batchImageResponse.getResponses(0), handleWebEntitiesResponse)
-    def processWebEntitiesPerImage =
+    def processWebEntitiesPerImage: VisionBatchResponse[VisionWebDetection] =
       handleVisionResponse(handleWebEntitiesResponse)
 
-    def processCropHints =
-      handleErrors(batchImageResponse.getResponses(0), handleCropHintsResponse)
-    def processCropHintsPerImage =
-      handleVisionResponse(handleCropHintsResponse)
+    def processCropHints: VisionResponse[VisionCropHintResponse] =
+      handleErrors(batchImageResponse.getResponses(0), handleCropHintResponse)
+    def processCropHintsPerImage: VisionBatchResponse[VisionCropHintResponse] =
+      handleVisionResponse(handleCropHintResponse)
 
-    def processDocumentText =
+    def processDocumentText: VisionResponse[VisionDocument] =
       handleErrors(batchImageResponse.getResponses(0), handleDocumentTextResponse)
-    def processDocumentTextPerImage =
+    def processDocumentTextPerImage: VisionBatchResponse[VisionDocument] =
       handleVisionResponse(handleDocumentTextResponse)
 
-    def processImageProperties =
+    def processImageProperties: VisionResponse[VisionImageProperties] =
       handleErrors(batchImageResponse.getResponses(0), handleImagePropertiesResponse)
-    def processImagePropertiesPerImage =
+    def processImagePropertiesPerImage: VisionBatchResponse[VisionImageProperties] =
       handleVisionResponse(handleImagePropertiesResponse)
 
   }

@@ -1,6 +1,7 @@
 package com.adrianrafo.gcp4s.vision
 import com.google.cloud.vision.v1.Likelihood
 
+//Common
 case class VisionError(message: String)
 
 case class VisionVertex(x: Float, y: Float)
@@ -11,39 +12,11 @@ case class VisionCoordinates(latitude: Double, longitude: Double)
 
 case class VisionLocation(coordinates: List[VisionCoordinates])
 
-case class VisionLabel(label: String, confidence: Int)
-
-case class VisionText(text: String, locale: String, confidence: Int, position: VisionPosition)
-
-case class VisionParagraph(
-    text: String,
-    confidence: Int,
-    locale: List[String],
-    words: List[VisionText])
-
-case class VisionBlock(
-    text: String,
-    confidence: Int,
-    locale: List[String],
-    paragraphs: List[VisionParagraph])
-
-case class VisionPage(
-    text: String,
-    confidence: Int,
-    locale: List[String],
-    blocks: List[VisionBlock])
-
-case class VisionDocument(
-    text: String,
-    confidence: Int,
-    locale: List[String],
-    pages: List[VisionPage])
-
 object Grade extends Enumeration {
   type Grade = Value
   val Unknown, VeryUnlikely, Unlikely, Possible, Likely, VeryLikely = Value
 
-  def toGrade(likelihood: Int): Grade.Value = Likelihood.forNumber(likelihood) match {
+  def fromValue(likelihood: Int): Grade.Value = Likelihood.forNumber(likelihood) match {
     case Likelihood.VERY_UNLIKELY => VeryUnlikely
     case Likelihood.UNLIKELY      => Unlikely
     case Likelihood.POSSIBLE      => Possible
@@ -53,8 +26,52 @@ object Grade extends Enumeration {
   }
 }
 
+//Label
+case class VisionLabel(label: String, confidence: Int)
+
+case class VisionLabelResponse(labels: List[VisionLabel])
+
+//Text
+case class VisionText(text: String, locale: String, confidence: Int, position: VisionPosition)
+
+case class VisionTextResponse(texts: List[VisionText])
+
+//Document
+case class VisionLanguage(code: String, confidence: Int)
+
+case class VisionWord(
+    text: String,
+    languages: List[VisionLanguage],
+    confidence: Int,
+    position: VisionPosition)
+
+case class VisionParagraph(
+    text: String,
+    confidence: Int,
+    languages: List[VisionLanguage],
+    words: List[VisionWord])
+
+case class VisionBlock(
+    text: String,
+    confidence: Int,
+    languages: List[VisionLanguage],
+    paragraphs: List[VisionParagraph])
+
+case class VisionPage(
+    text: String,
+    confidence: Int,
+    languages: List[VisionLanguage],
+    width: Int,
+    height: Int,
+    blocks: List[VisionBlock])
+
+case class VisionDocument(text: String, pages: List[VisionPage])
+
+//Object
 case class VisionObject(name: String, confidence: Int, position: VisionPosition)
 
+case class VisionObjectResponse(objects: List[VisionObject])
+//Face
 case class VisionFace(
     joy: Grade.Value,
     surprise: Grade.Value,
@@ -62,10 +79,19 @@ case class VisionFace(
     position: VisionPosition
 )
 
+case class VisionFaceResponse(faces: List[VisionFace])
+
+//Logo
 case class VisionLogo(description: String, confidence: Int, position: VisionPosition)
 
+case class VisionLogoResponse(logos: List[VisionLogo])
+
+//Landmark
 case class VisionLandMark(description: String, confidence: Int, location: VisionLocation)
 
+case class VisionLandMarkResponse(landmarks: List[VisionLandMark])
+
+//Safe search
 case class VisionSafeSearch(
     adult: Grade.Value,
     spoof: Grade.Value,
@@ -73,21 +99,42 @@ case class VisionSafeSearch(
     violence: Grade.Value,
     racy: Grade.Value)
 
+//Web
 object MatchLevel extends Enumeration {
   type MatchLevel = Value
   val Full, Partial, Similar = Value
-  }
+}
 
-case class VisionWebImageMatch(url:String, confidence:Int, level: MatchLevel.Value)
+case class VisionWebImageMatch(url: String, confidence: Int, level: MatchLevel.Value)
 
-case class VisionWebPageMatch(title:String, url: String,  confidence:Int, images: List[VisionWebImageMatch])
+case class VisionWebPageMatch(
+    title: String,
+    url: String,
+    confidence: Int,
+    images: List[VisionWebImageMatch])
 
-case class VisionWebEntity(description:String, confidence:Int)
+case class VisionWebEntity(description: String, confidence: Int)
 
-case class VisionWebLabel(label:String, code:String)
+case class VisionWebLabel(label: String, code: String)
 
-case class VisionWebDetection(entities: List[VisionWebEntity], labels:List[VisionWebLabel], pages: List[VisionWebPageMatch], images: List[VisionWebImageMatch])
+case class VisionWebDetection(
+    entities: List[VisionWebEntity],
+    webLabels: List[VisionWebLabel],
+    pages: List[VisionWebPageMatch],
+    images: List[VisionWebImageMatch])
 
-case class VisionCropHints(position: VisionPosition, confidence: Int, importanceFraction: Double)
+//Crop hints
+case class VisionCropHint(position: VisionPosition, confidence: Int, importanceFraction: Float)
 
-case class VisionImageProperties()
+case class VisionCropHintResponse(cropHints: List[VisionCropHint])
+
+//Image Properties
+case class VisionColor(
+    red: Float,
+    green: Float,
+    blue: Float,
+    alpha: Float,
+    pixelFraction: Float,
+    confidence: Int)
+
+case class VisionImageProperties(dominantColors: List[VisionColor])
