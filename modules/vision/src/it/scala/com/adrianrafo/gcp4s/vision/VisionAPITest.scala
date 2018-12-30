@@ -6,9 +6,9 @@ import org.scalatest._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class VisionImageAPITest extends FunSuite with Matchers {
+class VisionAPITest extends FunSuite with Matchers {
 
-  val service = VisionImageAPI[IO]
+  val service = VisionAPI[IO]
 
   test("VisionService should get labels for an image") {
     val path = "./modules/vision/src/it/resources/hand.jpg"

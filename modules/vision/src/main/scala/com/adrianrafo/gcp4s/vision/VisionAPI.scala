@@ -9,7 +9,7 @@ import com.adrianrafo.gcp4s.vision.RequestBuilder._
 
 import scala.concurrent.ExecutionContext
 
-trait VisionImageAPI[F[_]] {
+trait VisionAPI[F[_]] {
   def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient]
 
   def labelImage(
@@ -122,10 +122,10 @@ trait VisionImageAPI[F[_]] {
       context: Option[ImageContext]): F[VisionBatchResponse[VisionObjectResponse]]
 
 }
-object VisionImageAPI {
+object VisionAPI {
 
-  def apply[F[_]](implicit E: Effect[F], EC: ExecutionContext): VisionImageAPI[F] =
-    new VisionImageAPI[F] {
+  def apply[F[_]](implicit E: Effect[F], EC: ExecutionContext): VisionAPI[F] =
+    new VisionAPI[F] {
       type VisionApiResult[A] = VisionResult[F, A]
 
       private def getBatchRequest(
