@@ -12,8 +12,8 @@ object ProjectPlugin extends AutoPlugin {
       val catsEffects   = "1.0.0"
       val scalaTest     = "3.0.5"
       val gcpClient     = "1.46.0"
-      val gcpClientBeta = "0.64.0-beta"
     }
+    
   }
 
   import autoImport._
@@ -24,11 +24,11 @@ object ProjectPlugin extends AutoPlugin {
         "org.typelevel" %% "cats-core"   % V.cats,
         "org.typelevel" %% "cats-effect" % V.catsEffects))
 
-  lazy val commonSettings = gcpModuleSettings ++ Seq(
+  lazy val commonSettings: Seq[Def.Setting[_]] = gcpModuleSettings ++ Seq(
     libraryDependencies +=
       "org.scalatest" %% "scalatest" % V.scalaTest % Test)
 
-  lazy val visionSettings = gcpModuleSettings ++ Defaults.itSettings ++ Seq(
+  lazy val visionSettings: Seq[Def.Setting[_]] = gcpModuleSettings ++ Defaults.itSettings ++ Seq(
     libraryDependencies ++= Seq(
       "com.google.cloud" % "google-cloud-vision" % V.gcpClient,
       "org.scalatest"    %% "scalatest"          % V.scalaTest % "test;it"))
