@@ -10,10 +10,9 @@ package object vision {
 
   import syntax._
 
-  type VisionResult[F[_], A]  = EitherT[F, VisionError, A]
-  type VisionSource           = Either[String, ImageSource]
-  type VisionResponse[A]      = Either[VisionError, A]
-  type VisionBatchResponse[A] = List[VisionResponse[A]]
+  type VisionResult[F[_], A] = EitherT[F, VisionError, A]
+  type VisionSource          = Either[String, ImageSource]
+  type VisionResponse[A]     = List[Either[VisionError, A]]
 
   def visionErrorHandler: Throwable => VisionError = (e: Throwable) => VisionError(e.getMessage)
 

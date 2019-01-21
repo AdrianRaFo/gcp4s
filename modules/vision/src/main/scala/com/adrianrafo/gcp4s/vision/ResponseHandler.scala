@@ -1,6 +1,5 @@
 package com.adrianrafo.gcp4s.vision
 
-import cats.syntax.either._
 import com.google.cloud.vision.v1.TextAnnotation.TextProperty
 import com.google.cloud.vision.v1.WebDetection.WebImage
 import com.google.cloud.vision.v1._
@@ -8,14 +7,6 @@ import com.google.cloud.vision.v1._
 import scala.collection.JavaConverters._
 
 object ResponseHandler {
-
-  def handleErrors[A](
-      response: AnnotateImageResponse,
-      handleResponse: AnnotateImageResponse => A): VisionResponse[A] =
-    response match {
-      case res if res.hasError => VisionError(s"Error: ${res.getError}").asLeft[A]
-      case res                 => handleResponse(res).asRight[VisionError]
-    }
 
   private def getConfidence(score: Float): Int = (score * 100).toInt
 
