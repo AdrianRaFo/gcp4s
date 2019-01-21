@@ -43,11 +43,13 @@ trait VisionAPI[F[_]] {
   def faceDetection(
       client: ImageAnnotatorClient,
       context: Option[ImageContext],
+      maxResults: Option[Int],
       fileList: VisionSource*): F[VisionResponse[VisionFaceResponse]]
 
   def logoDetection(
       client: ImageAnnotatorClient,
       context: Option[ImageContext],
+      maxResults: Option[Int],
       fileList: VisionSource*): F[VisionResponse[VisionLogoResponse]]
 
   def cropHints(
@@ -58,6 +60,7 @@ trait VisionAPI[F[_]] {
   def landmarkDetection(
       client: ImageAnnotatorClient,
       context: Option[ImageContext],
+      maxResults: Option[Int],
       fileList: VisionSource*): F[VisionResponse[VisionLandMarkResponse]]
 
   def imagePropertiesDetection(
@@ -73,11 +76,13 @@ trait VisionAPI[F[_]] {
   def webEntitiesDetection(
       client: ImageAnnotatorClient,
       context: Option[ImageContext],
+      maxResults: Option[Int],
       fileList: VisionSource*): F[VisionResponse[VisionWebDetection]]
 
   def objectDetection(
       client: ImageAnnotatorClient,
       context: Option[ImageContext],
+      maxResults: Option[Int],
       fileList: VisionSource*): F[VisionResponse[VisionObjectResponse]]
 
 }
@@ -105,8 +110,7 @@ object VisionAPI {
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
           maxResults: Option[Int],
-          fileList: VisionSource*): F[VisionResponse[VisionLabelResponse]] = {
-
+          fileList: VisionSource*): F[VisionResponse[VisionLabelResponse]] =
         (for {
           batchRequest <- getBatchRequest(
             fileList.toList,
@@ -115,7 +119,6 @@ object VisionAPI {
             maxResults)
           response <- client.sendRequest(toBatchRequest(batchRequest))
         } yield response.processLabels).fold(e => List(e.asLeft[VisionLabelResponse]), identity)
-      }
 
       /**
        * To detect handwritten text:
@@ -124,7 +127,15 @@ object VisionAPI {
       def textDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionTextResponse]] = ???
+          fileList: VisionSource*): F[VisionResponse[VisionTextResponse]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.TEXT_DETECTION,
+            None)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield response.processText).fold(e => List(e.asLeft[VisionTextResponse]), identity)
 
       /**
        * To detect handwritten text:
@@ -133,47 +144,128 @@ object VisionAPI {
       def documentTextDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionDocument]] = ???
+          fileList: VisionSource*): F[VisionResponse[VisionDocument]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.DOCUMENT_TEXT_DETECTION,
+            None)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield response.processDocumentText).fold(e => List(e.asLeft[VisionDocument]), identity)
 
       def faceDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionFaceResponse]] = ???
+          maxResults: Option[Int],
+          fileList: VisionSource*): F[VisionResponse[VisionFaceResponse]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.FACE_DETECTION,
+            maxResults)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield response.processFace).fold(e => List(e.asLeft[VisionFaceResponse]), identity)
 
       def logoDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionLogoResponse]] = ???
+          maxResults: Option[Int],
+          fileList: VisionSource*): F[VisionResponse[VisionLogoResponse]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.LOGO_DETECTION,
+            maxResults)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield response.processLogo).fold(e => List(e.asLeft[VisionLogoResponse]), identity)
 
       def cropHints(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionCropHintResponse]] = ???
+          fileList: VisionSource*): F[VisionResponse[VisionCropHintResponse]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.CROP_HINTS,
+            None)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield
+          response.processCropHints).fold(e => List(e.asLeft[VisionCropHintResponse]), identity)
 
       def landmarkDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionLandMarkResponse]] = ???
+          maxResults: Option[Int],
+          fileList: VisionSource*): F[VisionResponse[VisionLandMarkResponse]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.LANDMARK_DETECTION,
+            maxResults)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield
+          response.processLandmark).fold(e => List(e.asLeft[VisionLandMarkResponse]), identity)
 
       def imagePropertiesDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionImageProperties]] = ???
+          fileList: VisionSource*): F[VisionResponse[VisionImageProperties]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.IMAGE_PROPERTIES,
+            None)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield response.processImageProperties)
+          .fold(e => List(e.asLeft[VisionImageProperties]), identity)
 
       def safeSearchDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionSafeSearch]] = ???
+          fileList: VisionSource*): F[VisionResponse[VisionSafeSearch]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.SAFE_SEARCH_DETECTION,
+            None)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield response.processSafeSearch).fold(e => List(e.asLeft[VisionSafeSearch]), identity)
 
       def webEntitiesDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionWebDetection]] = ???
+          maxResults: Option[Int],
+          fileList: VisionSource*): F[VisionResponse[VisionWebDetection]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.WEB_DETECTION,
+            maxResults)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield response.processWebEntities).fold(e => List(e.asLeft[VisionWebDetection]), identity)
 
       def objectDetection(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],
-          fileList: VisionSource*): F[VisionResponse[VisionObjectResponse]] = ???
+          maxResults: Option[Int],
+          fileList: VisionSource*): F[VisionResponse[VisionObjectResponse]] =
+        (for {
+          batchRequest <- getBatchRequest(
+            fileList.toList,
+            context,
+            Feature.Type.OBJECT_LOCALIZATION,
+            maxResults)
+          response <- client.sendRequest(toBatchRequest(batchRequest))
+        } yield
+          response.processObjectDetection).fold(e => List(e.asLeft[VisionObjectResponse]), identity)
     }
 
 }
