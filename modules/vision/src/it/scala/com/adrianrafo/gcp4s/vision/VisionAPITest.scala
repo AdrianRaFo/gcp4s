@@ -13,7 +13,7 @@ class VisionAPITest extends FunSuite with Matchers {
     val path = "./modules/vision/src/it/resources/hand.jpg"
     val response = service
       .createClient(None)
-      .flatMap(service.labelImage(_, Left(path), None, None))
+      .flatMap(service.labelImage(_, None, None, Left(path)))
       .unsafeRunSync()
     println(response)
     response shouldBe 'right

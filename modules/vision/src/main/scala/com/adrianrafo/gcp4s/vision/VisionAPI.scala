@@ -187,12 +187,8 @@ object VisionAPI {
           context: Option[ImageContext],
           fileList: VisionSource*): F[VisionResponse[VisionCropHintResponse]] =
         (for {
-          batchRequest <- getBatchRequest(
-            fileList.toList,
-            context,
-            Feature.Type.CROP_HINTS,
-            None)
-          response <- client.sendRequest(toBatchRequest(batchRequest))
+          batchRequest <- getBatchRequest(fileList.toList, context, Feature.Type.CROP_HINTS, None)
+          response     <- client.sendRequest(toBatchRequest(batchRequest))
         } yield
           response.processCropHints).fold(e => List(e.asLeft[VisionCropHintResponse]), identity)
 
