@@ -119,6 +119,8 @@ object VisionAPI {
       def createImageSource(uri: URI): F[ImageSource] =
         E.delay(ImageSource.newBuilder().setImageUri(uri.toString).build())
 
+      //TODO def createImageContext = ImageContext.newBuilder().addLanguageHints("").setCropHintsParams().setWebDetectionParams().build()
+
       def labelImage(
           client: ImageAnnotatorClient,
           context: Option[ImageContext],

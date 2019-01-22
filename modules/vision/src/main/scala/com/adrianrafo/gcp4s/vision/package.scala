@@ -14,7 +14,8 @@ package object vision {
   type VisionSource          = Either[String, ImageSource]
   type VisionResponse[A]     = List[Either[VisionError, A]]
 
-  def visionErrorHandler: Throwable => VisionError = (e: Throwable) => VisionError(e.getMessage)
+  def visionErrorHandler: Throwable => VisionError =
+    (e: Throwable) => VisionError(e.toString)
 
   implicit def imageAnnotatorClientOps[F[_]: Effect](client: ImageAnnotatorClient)(
       implicit EX: ExecutionContext): ImageAnnotatorClientOps[F] =

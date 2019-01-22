@@ -59,7 +59,7 @@ object ResponseHandler {
           Grade.fromValue(annotation.getJoyLikelihoodValue),
           Grade.fromValue(annotation.getSurpriseLikelihoodValue),
           Grade.fromValue(annotation.getAngerLikelihoodValue),
-          getPosition(annotation.getBoundingPoly, true)
+          getPosition(annotation.getBoundingPoly, false)
       ))
 
     VisionFaceResponse(faces)
