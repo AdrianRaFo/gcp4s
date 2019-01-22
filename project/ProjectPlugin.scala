@@ -1,6 +1,7 @@
-import sbt._
-import sbt.Keys._
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
+import sbt.Keys._
+import sbt._
+
 object ProjectPlugin extends AutoPlugin {
 
   override def trigger: PluginTrigger = allRequirements
@@ -8,10 +9,10 @@ object ProjectPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val V = new {
-      val cats          = "1.3.1"
-      val catsEffects   = "1.0.0"
+      val cats          = "1.5.0"
+      val catsEffects   = "1.2.0"
       val scalaTest     = "3.0.5"
-      val gcpClient     = "1.46.0"
+      val gcpClient     = "1.60.0"
     }
     
   }
@@ -38,7 +39,7 @@ object ProjectPlugin extends AutoPlugin {
       name := "gcp4s",
       organization := "com.adrianrafo",
       organizationName := "AdrianRaFo",
-      scalaVersion := "2.12.7",
+      scalaVersion := "2.12.8",
       scalacOptions := Seq(
         "-deprecation",
         "-encoding",

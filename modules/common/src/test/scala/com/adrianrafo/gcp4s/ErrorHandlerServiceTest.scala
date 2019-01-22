@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class ErrorHandlerServiceTest extends FreeSpec with Matchers {
 
-  def futureEx(n: Int) = {
+  def futureEx(n: Int): Int = {
     Thread.sleep(500)
     if (n == 0) throw new IOException else n
   }
@@ -25,7 +25,7 @@ class ErrorHandlerServiceTest extends FreeSpec with Matchers {
           .unsafeRunSync() shouldBe 'left
       }
 
-      "should return right value" in {
+      "should return the right value" in {
         ErrorHandlerService
           .handleError[IO, Throwable, Int](ex(1), identity)
           .value
@@ -40,7 +40,7 @@ class ErrorHandlerServiceTest extends FreeSpec with Matchers {
           .unsafeRunSync() shouldBe 'left
       }
 
-      "should return right value asynchronously" in {
+      "should return the right value asynchronously" in {
         ErrorHandlerService
           .asyncHandleError[IO, Throwable, Int](futureEx(1), identity)
           .value

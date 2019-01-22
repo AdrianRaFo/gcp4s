@@ -1,14 +1,21 @@
 package com.adrianrafo.gcp4s.vision
 
+import java.nio.file._
+
 import cats.data.EitherT
 import cats.effect.Effect
+import cats.instances.option._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
+import cats.syntax.option._
+import cats.syntax.traverse._
 import com.adrianrafo.gcp4s.ErrorHandlerService
 import com.google.cloud.vision.v1._
 import com.google.protobuf.ByteString
-import java.nio.file._
+
 import scala.collection.JavaConverters._
 
-object RequestBuilder {
+private[vision] object RequestBuilder {
 
   def toBatchRequest(requests: List[AnnotateImageRequest]): BatchAnnotateImagesRequest =
     BatchAnnotateImagesRequest.newBuilder().addAllRequests(requests.asJava).build()
@@ -51,4 +58,25 @@ object RequestBuilder {
       .map(builder => context.map(builder.setImageContext).getOrElse(builder).build())
   }
 
+  private def createImageContext[F[_]](contextParams: ImageContext.Builder => ImageContext.Builder)(
+      implicit E: Effect[F]): F[ImageContext] =
+    E.delay(contextParams(ImageContext.newBuilder()).build())
+
+  def createTextDetectionContext[F[_]](languages: Option[List[String]])(
+      implicit E: Effect[F]): F[Option[ImageContext]] =
+    languages.traverse(lang => createImageContext(_.addAllLanguageHints(lang.asJava)))
+
+  def createWebDetectionContext[F[_]](includeGeoLocation: Boolean)(
+      implicit E: Effect[F]): F[Option[ImageContext]] =
+    E.delay(WebDetectionParams.newBuilder().setIncludeGeoResults(includeGeoLocation).build())
+      .flatMap(params => createImageContext(_.setWebDetectionParams(params)))
+      .map(_.some)
+
+  def createCropHintContext[F[_]](aspectRatios: Option[List[Float]])(
+      implicit E: Effect[F]): F[Option[ImageContext]] =
+    aspectRatios.traverse(
+      ratios =>
+        E.delay(
+            CropHintsParams.newBuilder().addAllAspectRatios(ratios.map(float2Float).asJava).build())
+          .flatMap(params => createImageContext(_.setCropHintsParams(params))))
 }

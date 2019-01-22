@@ -17,7 +17,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize labels from an image") {
     val path = "./modules/vision/src/it/resources/hand.jpg"
     val response = clientIO
-      .flatMap(service.labelImage(_, None, None, Left(path)))
+      .flatMap(service.labelImage(_, None, Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -27,7 +27,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize labels from an image with a response limit") {
     val path = "./modules/vision/src/it/resources/hand.jpg"
     val response = clientIO
-      .flatMap(service.labelImage(_, None, Some(3), Left(path)))
+      .flatMap(service.labelImage(_, Some(3), Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -58,7 +58,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize happy faces from an image") {
     val path = "./modules/vision/src/it/resources/happy.jpg"
     val response = clientIO
-      .flatMap(service.faceDetection(_, None, None, Left(path)))
+      .flatMap(service.faceDetection(_, None, Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -68,7 +68,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize anger faces from an image") {
     val path = "./modules/vision/src/it/resources/anger.jpg"
     val response = clientIO
-      .flatMap(service.faceDetection(_, None, None, Left(path)))
+      .flatMap(service.faceDetection(_, None, Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -78,7 +78,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize surprise faces from an image") {
     val path = "./modules/vision/src/it/resources/surprise.jpg"
     val response = clientIO
-      .flatMap(service.faceDetection(_, None, None, Left(path)))
+      .flatMap(service.faceDetection(_, None, Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -91,7 +91,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
       "./modules/vision/src/it/resources/logos/logo2.jpeg"
     ).map(Left(_))
     val response = clientIO
-      .flatMap(service.logoDetection(_, None, None, paths: _*))
+      .flatMap(service.logoDetection(_, None, paths: _*))
       .unsafeRunSync()
     response
       .map(_.map(_.logos.map(_.description).mkString))
@@ -110,7 +110,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize landmarks from an image") {
     val path = "./modules/vision/src/it/resources/landmark.jpeg"
     val response = clientIO
-      .flatMap(service.landmarkDetection(_, None, None, Left(path)))
+      .flatMap(service.landmarkDetection(_, None, Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -120,7 +120,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize properties from an image") {
     val path = "./modules/vision/src/it/resources/hand.jpg"
     val response = clientIO
-      .flatMap(service.imagePropertiesDetection(_, None, Left(path)))
+      .flatMap(service.imagePropertiesDetection(_, Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -129,7 +129,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize search safety from an image") {
     val path = "./modules/vision/src/it/resources/web.png"
     val response = clientIO
-      .flatMap(service.safeSearchDetection(_, None, Left(path)))
+      .flatMap(service.safeSearchDetection(_, Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -143,7 +143,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize web entities from an image") {
     val path = "./modules/vision/src/it/resources/web.png"
     val response = clientIO
-      .flatMap(service.webEntitiesDetection(_, None, Some(3), Left(path)))
+      .flatMap(service.webEntitiesDetection(_, false, Some(3), Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right
@@ -154,7 +154,7 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
   test("VisionService should recognize objects from an image") {
     val path = "./modules/vision/src/it/resources/objects.jpeg"
     val response = clientIO
-      .flatMap(service.objectDetection(_, None, None, Left(path)))
+      .flatMap(service.objectDetection(_, None, Left(path)))
       .unsafeRunSync()
       .head
     response shouldBe 'right

@@ -1,8 +1,8 @@
 package com.adrianrafo.gcp4s
 
 import cats.data.EitherT
-import cats.syntax.either._
 import cats.effect._
+import cats.syntax.either._
 
 import scala.concurrent.{ExecutionContext, Future}
 

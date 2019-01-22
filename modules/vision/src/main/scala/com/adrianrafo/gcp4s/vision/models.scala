@@ -1,4 +1,5 @@
 package com.adrianrafo.gcp4s.vision
+
 import com.google.cloud.vision.v1.Likelihood
 
 //Common

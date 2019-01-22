@@ -14,14 +14,14 @@ package object vision {
   type VisionSource          = Either[String, ImageSource]
   type VisionResponse[A]     = List[Either[VisionError, A]]
 
-  def visionErrorHandler: Throwable => VisionError =
+  private[vision] def visionErrorHandler: Throwable => VisionError =
     (e: Throwable) => VisionError(e.toString)
 
-  implicit def imageAnnotatorClientOps[F[_]: Effect](client: ImageAnnotatorClient)(
+  implicit private[vision] def imageAnnotatorClientOps[F[_]: Effect](client: ImageAnnotatorClient)(
       implicit EX: ExecutionContext): ImageAnnotatorClientOps[F] =
     new ImageAnnotatorClientOps[F](client)
 
-  implicit def batchAnnotateImagesResponseOps(
+  implicit private[vision] def batchAnnotateImagesResponseOps(
       response: BatchAnnotateImagesResponse): BatchAnnotateImagesResponseOps =
     new BatchAnnotateImagesResponseOps(response)
 

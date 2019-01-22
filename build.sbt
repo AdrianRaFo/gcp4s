@@ -6,7 +6,7 @@ import ProjectPlugin._
 
 lazy val common = project in file("modules/common") settings (name := "gcp4s-common") settings commonSettings
 
-lazy val vision = project in file("modules/vision") settings (name := "gcp4s-vision")  settings visionSettings configs IntegrationTest dependsOn common
+lazy val vision = project in file("modules/vision") settings (name := "gcp4s-vision") settings visionSettings configs IntegrationTest dependsOn common
 
 /////////////////////////
 ////      gcp4s      ////

@@ -6,7 +6,7 @@ import com.google.cloud.vision.v1._
 
 import scala.collection.JavaConverters._
 
-object ResponseHandler {
+private[vision] object ResponseHandler {
 
   private def getConfidence(score: Float): Int = (score * 100).toInt
 
