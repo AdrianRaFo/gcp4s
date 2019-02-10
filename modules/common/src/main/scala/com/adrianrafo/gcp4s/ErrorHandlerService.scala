@@ -8,9 +8,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ErrorHandlerService {
   def handleError[F[_], E, A](f: => A, handler: Throwable => E)(
-      implicit E: Effect[F]): EitherT[F, E, A] = E.attemptT[A](E.delay(f)).leftMap(handler)
-
-  def asyncHandleError[F[_], E, A](f: => A, handler: Throwable => E)(
       implicit E: Effect[F],
       EC: ExecutionContext): EitherT[F, E, A] =
     E.attemptT[A](E.async[A](effect =>

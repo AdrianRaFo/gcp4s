@@ -14,6 +14,7 @@ import com.google.cloud.vision.v1._
 import com.google.protobuf.ByteString
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 
 private[vision] object RequestBuilder {
 
@@ -24,7 +25,8 @@ private[vision] object RequestBuilder {
       filePath: VisionSource,
       featureType: Feature.Type,
       context: Option[ImageContext],
-      maxResults: Option[Int]): VisionResult[F, AnnotateImageRequest] = {
+      maxResults: Option[Int])(
+      implicit EC: ExecutionContext): VisionResult[F, AnnotateImageRequest] = {
 
     def buildImage: VisionResult[F, Image] = {
       def getPath(path: String): EitherT[F, VisionError, Path] =

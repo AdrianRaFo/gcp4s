@@ -19,7 +19,7 @@ private[vision] object syntax {
       F,
       VisionError,
       BatchAnnotateImagesResponse] =
-      ErrorHandlerService.asyncHandleError(
+      ErrorHandlerService.handleError(
         client.batchAnnotateImagesCallable.futureCall(batchRequest).get(),
         visionErrorHandler)
 

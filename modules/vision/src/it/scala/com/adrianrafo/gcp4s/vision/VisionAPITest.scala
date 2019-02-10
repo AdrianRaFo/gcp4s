@@ -87,15 +87,37 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
 
   test("VisionService should recognize logos from an image") {
     val paths = List(
-      "./modules/vision/src/it/resources/logos/logo1.jpeg",
+      "./modules/vision/src/it/resources/logos/logo1.png",
       "./modules/vision/src/it/resources/logos/logo2.jpeg"
     ).map(Left(_))
     val response = clientIO
       .flatMap(service.logoDetection(_, None, paths: _*))
       .unsafeRunSync()
     response
-      .map(_.map(_.logos.map(_.description).mkString))
-      .forall(res => res.contains("Google") || res.contains("Scala")) shouldBe true
+      .map(_.map(_.logos.map(_.description.toLowerCase).mkString))
+      .forall(res => res.exists(_.contains("google")) || res.exists(_.contains("scala"))) shouldBe true
+  }
+
+  test("VisionService should returns success and errors") {
+    val paths = List(
+      "./modules/vision/src/it/resources/logos/logo1.png",
+      "./modules/vision/src/it/resources/wrongImage.png"
+    ).map(Left(_))
+    val response = clientIO
+      .flatMap(service.logoDetection(_, None, paths: _*))
+      .unsafeRunSync()
+    response.exists(_.isRight) && response.exists(_.isLeft) shouldBe true
+  }
+
+  test("VisionService should returns an error when has an invalid path") {
+    val paths = List(
+      "./modules/vision/src/it/resources/logos/logo",
+      "./modules/vision/src/it/resources/wrongImage.png"
+    ).map(Left(_))
+    val response = clientIO
+      .flatMap(service.logoDetection(_, None, paths: _*))
+      .unsafeRunSync()
+    response.exists(_.isLeft) shouldBe true
   }
 
   test("VisionService should recognize crop hints from an image") {

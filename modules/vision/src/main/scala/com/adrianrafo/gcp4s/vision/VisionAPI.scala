@@ -103,6 +103,7 @@ object VisionAPI {
           maxResults: Option[Int],
           fileList: VisionSource*)(
           processResult: BatchAnnotateImagesResponse => VisionResponse[T]): F[VisionResponse[T]] = {
+
         def getBatchRequest(
             fileList: List[VisionSource],
             context: Option[ImageContext],
