@@ -29,7 +29,7 @@ private[vision] object RequestBuilder {
       implicit EC: ExecutionContext): VisionResult[F, AnnotateImageRequest] = {
 
     def buildImage: VisionResult[F, Image] = {
-      def getPath(path: String): EitherT[F, VisionError, Path] =
+      def getPath(path: String): VisionResult[F, Path] =
         ErrorHandlerService.handleError(Paths.get(path), visionErrorHandler)
 
       val builder = Image.newBuilder

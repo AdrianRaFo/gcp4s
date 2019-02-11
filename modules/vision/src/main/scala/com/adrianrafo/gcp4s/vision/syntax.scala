@@ -1,6 +1,5 @@
 package com.adrianrafo.gcp4s.vision
 
-import cats.data.EitherT
 import cats.effect.Effect
 import cats.syntax.either._
 import com.adrianrafo.gcp4s.ErrorHandlerService
@@ -15,10 +14,8 @@ private[vision] object syntax {
       implicit E: Effect[F],
       EC: ExecutionContext) {
 
-    def sendRequest(batchRequest: BatchAnnotateImagesRequest): EitherT[
-      F,
-      VisionError,
-      BatchAnnotateImagesResponse] =
+    def sendRequest(
+        batchRequest: BatchAnnotateImagesRequest): VisionResult[F, BatchAnnotateImagesResponse] =
       ErrorHandlerService.handleError(
         client.batchAnnotateImagesCallable.futureCall(batchRequest).get(),
         visionErrorHandler)

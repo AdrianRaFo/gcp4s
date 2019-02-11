@@ -98,26 +98,16 @@ class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
       .forall(res => res.exists(_.contains("google")) || res.exists(_.contains("scala"))) shouldBe true
   }
 
-  test("VisionService should returns success and errors") {
+  test("VisionService should returns an errors and responses when has an invalid path") {
     val paths = List(
       "./modules/vision/src/it/resources/logos/logo1.png",
-      "./modules/vision/src/it/resources/wrongImage.png"
+      "./modules/vision/src/it/resources/logos/logo.png"
     ).map(Left(_))
     val response = clientIO
       .flatMap(service.logoDetection(_, None, paths: _*))
       .unsafeRunSync()
+    println(s"\n${response}\n")
     response.exists(_.isRight) && response.exists(_.isLeft) shouldBe true
-  }
-
-  test("VisionService should returns an error when has an invalid path") {
-    val paths = List(
-      "./modules/vision/src/it/resources/logos/logo",
-      "./modules/vision/src/it/resources/wrongImage.png"
-    ).map(Left(_))
-    val response = clientIO
-      .flatMap(service.logoDetection(_, None, paths: _*))
-      .unsafeRunSync()
-    response.exists(_.isLeft) shouldBe true
   }
 
   test("VisionService should recognize crop hints from an image") {

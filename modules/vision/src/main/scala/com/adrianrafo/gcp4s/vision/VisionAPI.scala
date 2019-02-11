@@ -5,9 +5,9 @@ import java.net.URI
 import cats.effect.Effect
 import cats.instances.list._
 import cats.syntax.either._
-import cats.syntax.traverse._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import cats.syntax.traverse._
 import com.adrianrafo.gcp4s.vision.RequestBuilder._
 import com.google.cloud.vision.v1._
 
@@ -94,7 +94,6 @@ object VisionAPI {
 
   def apply[F[_]](implicit E: Effect[F], EC: ExecutionContext): VisionAPI[F] =
     new VisionAPI[F] {
-      type VisionApiResult[A] = VisionResult[F, A]
 
       private def doRequest[T](
           client: ImageAnnotatorClient,
@@ -108,14 +107,27 @@ object VisionAPI {
             fileList: List[VisionSource],
             context: Option[ImageContext],
             feature: Feature.Type,
-            maxResults: Option[Int]): VisionApiResult[List[AnnotateImageRequest]] =
-          fileList.traverse[VisionApiResult, AnnotateImageRequest](filePath =>
-            buildImageRequest(filePath, feature, context, maxResults))
+            maxResults: Option[Int]): F[VisionResponse[AnnotateImageRequest]] =
+          fileList.traverse(filePath =>
+            buildImageRequest(filePath, feature, context, maxResults).value)
 
-        (for {
-          batchRequest <- getBatchRequest(fileList.toList, context, requestType, maxResults)
-          response     <- client.sendRequest(toBatchRequest(batchRequest))
-        } yield processResult(response)).fold(e => List(e.asLeft[T]), identity)
+        def separateResults(list: VisionResponse[AnnotateImageRequest]): (
+            List[VisionError],
+            List[AnnotateImageRequest]) =
+          list.foldLeft((List.empty[VisionError], List.empty[AnnotateImageRequest])) {
+            case ((errAcc, reqAcc), Right(req)) => (errAcc, reqAcc :+ req)
+            case ((errAcc, reqAcc), Left(err))  => (errAcc :+ err, reqAcc)
+          }
+
+        getBatchRequest(fileList.toList, context, requestType, maxResults).flatMap(requestList => {
+          val (badRequestList, rightRequestList) = separateResults(requestList)
+          val errorList: VisionResponse[T]       = badRequestList.map(_.asLeft[T])
+
+          client
+            .sendRequest(toBatchRequest(rightRequestList))
+            .fold(errorList :+ _.asLeft[T], response => errorList ++ processResult(response))
+        })
+
       }
 
       def createClient(settings: Option[ImageAnnotatorSettings]): F[ImageAnnotatorClient] =
