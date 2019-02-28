@@ -9,10 +9,10 @@ object ProjectPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val V = new {
-      val cats          = "1.5.0"
+      val cats          = "1.6.0"
       val catsEffects   = "1.2.0"
-      val scalaTest     = "3.0.5"
-      val gcpClient     = "1.60.0"
+      val scalaTest     = "3.0.6"
+      val gcpClient     = "1.63.0"
     }
     
   }
