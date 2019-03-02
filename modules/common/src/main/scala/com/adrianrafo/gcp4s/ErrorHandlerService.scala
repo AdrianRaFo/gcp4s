@@ -3,7 +3,6 @@ package com.adrianrafo.gcp4s
 import cats.data.EitherT
 import cats.effect._
 import cats.syntax.either._
-import cats.syntax.functor._
 
 import scala.concurrent.{ExecutionContext, Future}
 
