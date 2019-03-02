@@ -1,4 +1,4 @@
-package com.adrianrafo.gcp4s.vision
+package com.adrianrafo.gcp4s.vision.internal
 
 import java.nio.file._
 
@@ -10,6 +10,7 @@ import cats.syntax.functor._
 import cats.syntax.option._
 import cats.syntax.traverse._
 import com.adrianrafo.gcp4s.ErrorHandlerService
+import com.adrianrafo.gcp4s.vision._
 import com.google.cloud.vision.v1._
 import com.google.protobuf.ByteString
 
@@ -21,12 +22,13 @@ private[vision] object RequestBuilder {
   def toBatchRequest(requests: List[AnnotateImageRequest]): BatchAnnotateImagesRequest =
     BatchAnnotateImagesRequest.newBuilder().addAllRequests(requests.asJava).build()
 
-  def buildImageRequest[F[_]: Effect](
+  def buildImageRequest[F[_]](
       filePath: VisionSource,
       featureType: Feature.Type,
       context: Option[ImageContext],
       maxResults: Option[Int])(
-      implicit EC: ExecutionContext): VisionResult[F, AnnotateImageRequest] = {
+      implicit E: Effect[F],
+      EC: ExecutionContext): VisionResult[F, AnnotateImageRequest] = {
 
     def buildImage: VisionResult[F, Image] = {
       def getPath(path: String): VisionResult[F, Path] =
@@ -60,10 +62,6 @@ private[vision] object RequestBuilder {
       .map(builder => context.map(builder.setImageContext).getOrElse(builder).build())
   }
 
-  private def createImageContext[F[_]](contextParams: ImageContext.Builder => ImageContext.Builder)(
-      implicit E: Effect[F]): F[ImageContext] =
-    E.delay(contextParams(ImageContext.newBuilder()).build())
-
   def createTextDetectionContext[F[_]](languages: Option[List[String]])(
       implicit E: Effect[F]): F[Option[ImageContext]] =
     languages.traverse(lang => createImageContext(_.addAllLanguageHints(lang.asJava)))
@@ -81,4 +79,8 @@ private[vision] object RequestBuilder {
         E.delay(
             CropHintsParams.newBuilder().addAllAspectRatios(ratios.map(float2Float).asJava).build())
           .flatMap(params => createImageContext(_.setCropHintsParams(params))))
+
+  private def createImageContext[F[_]](contextParams: ImageContext.Builder => ImageContext.Builder)(
+      implicit E: Effect[F]): F[ImageContext] =
+    E.delay(contextParams(ImageContext.newBuilder()).build())
 }

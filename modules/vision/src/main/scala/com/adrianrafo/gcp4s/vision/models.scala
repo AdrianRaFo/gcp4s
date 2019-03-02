@@ -3,6 +3,7 @@ package com.adrianrafo.gcp4s.vision
 import com.google.cloud.vision.v1.Likelihood
 
 //Common
+
 case class VisionError(message: String)
 
 case class VisionVertex(x: Float, y: Float)
@@ -72,6 +73,7 @@ case class VisionDocument(text: String, pages: List[VisionPage])
 case class VisionObject(name: String, confidence: Int, position: VisionPosition)
 
 case class VisionObjectResponse(objects: List[VisionObject])
+
 //Face
 case class VisionFace(
     joy: Grade.Value,

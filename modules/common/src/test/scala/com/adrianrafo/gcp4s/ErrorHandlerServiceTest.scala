@@ -14,8 +14,6 @@ class ErrorHandlerServiceTest extends FreeSpec with Matchers {
     if (n == 0) throw new IOException else n
   }
 
-  def ex(n: Int): Int = if (n == 0) throw new IOException else n
-
   "ErrorHandlerService" - {
     "handleError" - {
       "should handle exceptions asynchronously" in {

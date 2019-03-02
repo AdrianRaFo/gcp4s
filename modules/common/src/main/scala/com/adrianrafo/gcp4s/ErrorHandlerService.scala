@@ -3,10 +3,12 @@ package com.adrianrafo.gcp4s
 import cats.data.EitherT
 import cats.effect._
 import cats.syntax.either._
+import cats.syntax.functor._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object ErrorHandlerService {
+
   def handleError[F[_], E, A](f: => A, handler: Throwable => E)(
       implicit E: Effect[F],
       EC: ExecutionContext): EitherT[F, E, A] =

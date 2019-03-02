@@ -1,5 +1,7 @@
 package com.adrianrafo.gcp4s.vision
 
+package internal
+
 import com.google.cloud.vision.v1.TextAnnotation.TextProperty
 import com.google.cloud.vision.v1.WebDetection.WebImage
 import com.google.cloud.vision.v1._
@@ -7,20 +9,6 @@ import com.google.cloud.vision.v1._
 import scala.collection.JavaConverters._
 
 private[vision] object ResponseHandler {
-
-  private def getConfidence(score: Float): Int = (score * 100).toInt
-
-  private def getPosition(boundingPoly: BoundingPoly, normalized: Boolean): VisionPosition = {
-
-    def toVisionVertex(vertex: Vertex)                     = VisionVertex(vertex.getX.toFloat, vertex.getY.toFloat)
-    def toNormalizedVisionVertex(vertex: NormalizedVertex) = VisionVertex(vertex.getX, vertex.getY)
-
-    val vertices =
-      if (normalized) boundingPoly.getNormalizedVerticesList.asScala.map(toNormalizedVisionVertex)
-      else boundingPoly.getVerticesList.asScala.map(toVisionVertex)
-
-    VisionPosition(vertices.toList)
-  }
 
   def handleLabelResponse(res: AnnotateImageResponse): VisionLabelResponse = {
     val labels = res.getLabelAnnotationsList.asScala.toList
@@ -154,6 +142,21 @@ private[vision] object ResponseHandler {
           cropHint.getImportanceFraction))
 
     VisionCropHintResponse(cropHints)
+  }
+
+  private def getConfidence(score: Float): Int = (score * 100).toInt
+
+  private def getPosition(boundingPoly: BoundingPoly, normalized: Boolean): VisionPosition = {
+
+    def toVisionVertex(vertex: Vertex) = VisionVertex(vertex.getX.toFloat, vertex.getY.toFloat)
+
+    def toNormalizedVisionVertex(vertex: NormalizedVertex) = VisionVertex(vertex.getX, vertex.getY)
+
+    val vertices =
+      if (normalized) boundingPoly.getNormalizedVerticesList.asScala.map(toNormalizedVisionVertex)
+      else boundingPoly.getVerticesList.asScala.map(toVisionVertex)
+
+    VisionPosition(vertices.toList)
   }
 
   def handleDocumentTextResponse(res: AnnotateImageResponse): VisionDocument = {

@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext
 
 package object vision {
 
-  import syntax._
+  import com.adrianrafo.gcp4s.vision.internal.syntax._
 
   type VisionResult[F[_], A] = EitherT[F, VisionError, A]
   type VisionSource          = Either[String, ImageSource]
@@ -17,12 +17,14 @@ package object vision {
   private[vision] def visionErrorHandler: Throwable => VisionError =
     (e: Throwable) => VisionError(e.toString)
 
-  implicit private[vision] def imageAnnotatorClientOps[F[_]: Effect](client: ImageAnnotatorClient)(
-      implicit EX: ExecutionContext): ImageAnnotatorClientOps[F] =
-    new ImageAnnotatorClientOps[F](client)
+  implicit private[vision] def imageAnnotatorClientOps[F[_]: Effect](visionClient: VisionClient[F])(
+      implicit EX: ExecutionContext): VisionClientOps[F] =
+    new VisionClientOps[F](visionClient)
 
   implicit private[vision] def batchAnnotateImagesResponseOps(
       response: BatchAnnotateImagesResponse): BatchAnnotateImagesResponseOps =
     new BatchAnnotateImagesResponseOps(response)
+
+  implicit def visionApi[F[_]: Effect](implicit EC: ExecutionContext): VisionAPI[F] = VisionAPI[F]
 
 }

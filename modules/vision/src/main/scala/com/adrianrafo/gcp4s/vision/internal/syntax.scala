@@ -1,30 +1,46 @@
-package com.adrianrafo.gcp4s.vision
+package com.adrianrafo.gcp4s.vision.internal
 
 import cats.effect.Effect
 import cats.syntax.either._
+import cats.syntax.functor._
 import com.adrianrafo.gcp4s.ErrorHandlerService
-import com.adrianrafo.gcp4s.vision.ResponseHandler._
+import com.adrianrafo.gcp4s.vision._
+import com.adrianrafo.gcp4s.vision.internal.ResponseHandler._
 import com.google.cloud.vision.v1._
 
 import scala.concurrent.ExecutionContext
 
 private[vision] object syntax {
 
-  final class ImageAnnotatorClientOps[F[_]](client: ImageAnnotatorClient)(
+  final class VisionClientOps[F[_]](visionClient: VisionClient[F])(
       implicit E: Effect[F],
       EC: ExecutionContext) {
 
     def sendRequest(
         batchRequest: BatchAnnotateImagesRequest): VisionResult[F, BatchAnnotateImagesResponse] =
-      ErrorHandlerService.handleError(
-        client.batchAnnotateImagesCallable.futureCall(batchRequest).get(),
-        visionErrorHandler)
+      ErrorHandlerService
+        .handleError(
+          visionClient.client.map(_.batchAnnotateImagesCallable.futureCall(batchRequest).get()),
+          visionErrorHandler)
+        .semiflatMap(identity)
 
   }
 
   final class BatchAnnotateImagesResponseOps(batchImageResponse: BatchAnnotateImagesResponse) {
 
     import scala.collection.JavaConverters._
+
+    def processLabels: VisionResponse[VisionLabelResponse] =
+      handleVisionResponse(handleLabelResponse)
+
+    def processText: VisionResponse[VisionTextResponse] =
+      handleVisionResponse(handleTextResponse)
+
+    def processObjectDetection: VisionResponse[VisionObjectResponse] =
+      handleVisionResponse(handleObjectResponse)
+
+    def processFace: VisionResponse[VisionFaceResponse] =
+      handleVisionResponse(handleFaceResponse)
 
     private def handleVisionResponse[A](
         handleResponse: AnnotateImageResponse => A): VisionResponse[A] = {
@@ -40,18 +56,6 @@ private[vision] object syntax {
           case (list, res) => list :+ handleErrors(res)
         }
     }
-
-    def processLabels: VisionResponse[VisionLabelResponse] =
-      handleVisionResponse(handleLabelResponse)
-
-    def processText: VisionResponse[VisionTextResponse] =
-      handleVisionResponse(handleTextResponse)
-
-    def processObjectDetection: VisionResponse[VisionObjectResponse] =
-      handleVisionResponse(handleObjectResponse)
-
-    def processFace: VisionResponse[VisionFaceResponse] =
-      handleVisionResponse(handleFaceResponse)
 
     def processLogo: VisionResponse[VisionLogoResponse] =
       handleVisionResponse(handleLogoResponse)
