@@ -1,6 +1,8 @@
 package com.adrianrafo.gcp4s.vision
 
-import cats.effect.Effect
+import java.net.URI
+
+import cats.effect.{Effect, Resource}
 import cats.syntax.applicative._
 import cats.syntax.functor._
 import com.adrianrafo.gcp4s.{Gcp4sClient, Gcp4sCredentialsProvider}
@@ -94,5 +96,14 @@ object VisionClient {
       .fold(builder.pure[F])(cr => cr.credentials.map(builder.setCredentialsProvider))
       .map(_.build())
   }
+
+  def createClient[F[_]](maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]] = None)(
+      implicit E: Effect[F],
+      visionAPI: VisionAPI[F]): Resource[F, VisionClient[F]] =
+    Resource.make(VisionClient.buildSettings(maybeCredentialsProvider).map(new VisionClient(_)))(
+      _.shutdown())
+
+  def createImageSource[F[_]](uri: URI)(implicit E: Effect[F]): F[ImageSource] =
+    E.delay(ImageSource.newBuilder().setImageUri(uri.toString).build())
 
 }

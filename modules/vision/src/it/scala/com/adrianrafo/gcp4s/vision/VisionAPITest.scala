@@ -7,7 +7,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class VisionAPITest extends FunSuite with Matchers with BeforeAndAfterAll {
 
-  val (client, shutdown) = Gcp4sVision.createClient[IO](None).allocated.unsafeRunSync()
+  val (client, shutdown) = VisionClient.createClient[IO](None).allocated.unsafeRunSync()
 
   override protected def afterAll(): Unit =
     client.shutdown().unsafeRunSync()
