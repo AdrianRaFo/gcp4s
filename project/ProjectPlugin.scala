@@ -10,7 +10,9 @@ object ProjectPlugin extends AutoPlugin {
       val cats        = "1.6.0"
       val catsEffects = "1.2.0"
       val scalaTest   = "3.0.6"
+      val gax         = "1.40.0"
       val gcpClient   = "1.63.0"
+      val kittens     = "1.2.0"
     }
 
   }
@@ -25,7 +27,10 @@ object ProjectPlugin extends AutoPlugin {
 
   lazy val commonSettings: Seq[Def.Setting[_]] = gcpModuleSettings ++ Seq(
     libraryDependencies ++=
-      Seq("com.google.api" % "gax" % "1.40.0", "org.scalatest" %% "scalatest" % V.scalaTest % Test))
+      Seq(
+        "org.typelevel"  %% "kittens"   % V.kittens,
+        "com.google.api" % "gax"        % V.gax,
+        "org.scalatest"  %% "scalatest" % V.scalaTest % Test))
 
   lazy val visionSettings: Seq[Def.Setting[_]] = gcpModuleSettings ++ Defaults.itSettings ++ Seq(
     libraryDependencies ++= Seq(
