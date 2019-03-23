@@ -4,7 +4,7 @@ import cats.Show
 import cats.derived.semi
 import cats.instances.all._
 
-object shows {
+trait shows {
   implicit val VisionErrorShow: Show[VisionError]                 = semi.show[VisionError]
   implicit val VisionVertexShow: Show[VisionVertex]               = semi.show[VisionVertex]
   implicit val VisionPositionShow: Show[VisionPosition]           = semi.show[VisionPosition]
@@ -41,3 +41,4 @@ object shows {
   implicit val visionColorShow: Show[VisionColor]                 = semi.show[VisionColor]
   implicit val vipShow: Show[VisionImageProperties]               = semi.show[VisionImageProperties]
 }
+object shows extends shows
