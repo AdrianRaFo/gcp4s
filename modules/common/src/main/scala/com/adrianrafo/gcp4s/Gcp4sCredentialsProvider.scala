@@ -11,14 +11,16 @@ trait Gcp4sCredentialsProvider[F[_]] {
 
 object Gcp4sCredentialsProvider {
 
-  def getCredentials[F[_]](credentialsPath: String)(
-      implicit F: Effect[F]): F[Gcp4sCredentialsProvider[F]] =
+  def getCredentials[F[_]](
+      credentialsPath: String
+  )(implicit F: Effect[F]): F[Gcp4sCredentialsProvider[F]] =
     F.delay(new Gcp4sCredentialsProvider[F] {
 
       val credentials: F[FixedCredentialsProvider] =
         F.delay(
-          FixedCredentialsProvider.create(
-            ServiceAccountCredentials.fromStream(new FileInputStream(credentialsPath))))
+          FixedCredentialsProvider
+            .create(ServiceAccountCredentials.fromStream(new FileInputStream(credentialsPath)))
+        )
     })
 
 }

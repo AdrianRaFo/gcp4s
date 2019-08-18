@@ -17,12 +17,14 @@ package object vision {
   private[vision] def visionErrorHandler: Throwable => VisionError =
     (e: Throwable) => VisionError(e.toString)
 
-  implicit private[vision] def imageAnnotatorClientOps[F[_]: Effect](visionClient: VisionClient[F])(
-      implicit EX: ExecutionContext): VisionClientOps[F] =
+  implicit private[vision] def imageAnnotatorClientOps[F[_]: Effect](
+      visionClient: VisionClient[F]
+  )(implicit EX: ExecutionContext): VisionClientOps[F] =
     new VisionClientOps[F](visionClient)
 
   implicit private[vision] def batchAnnotateImagesResponseOps(
-      response: BatchAnnotateImagesResponse): BatchAnnotateImagesResponseOps =
+      response: BatchAnnotateImagesResponse
+  ): BatchAnnotateImagesResponseOps =
     new BatchAnnotateImagesResponseOps(response)
 
   implicit def visionApi[F[_]: Effect](implicit EC: ExecutionContext): VisionAPI[F] = VisionAPI[F]

@@ -14,14 +14,17 @@ private[vision] object syntax {
 
   final class VisionClientOps[F[_]](visionClient: VisionClient[F])(
       implicit E: Effect[F],
-      EC: ExecutionContext) {
+      EC: ExecutionContext
+  ) {
 
     def sendRequest(
-        batchRequest: BatchAnnotateImagesRequest): VisionResult[F, BatchAnnotateImagesResponse] =
+        batchRequest: BatchAnnotateImagesRequest
+    ): VisionResult[F, BatchAnnotateImagesResponse] =
       ErrorHandlerService
         .handleError(
           visionClient.client.map(_.batchAnnotateImagesCallable.futureCall(batchRequest).get()),
-          visionErrorHandler)
+          visionErrorHandler
+        )
         .semiflatMap(identity)
 
   }
@@ -43,7 +46,8 @@ private[vision] object syntax {
       handleVisionResponse(handleFaceResponse)
 
     private def handleVisionResponse[A](
-        handleResponse: AnnotateImageResponse => A): VisionResponse[A] = {
+        handleResponse: AnnotateImageResponse => A
+    ): VisionResponse[A] = {
 
       def handleErrors(response: AnnotateImageResponse): Either[VisionError, A] =
         response match {

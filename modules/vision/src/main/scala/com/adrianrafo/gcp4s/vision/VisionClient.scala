@@ -10,15 +10,16 @@ import com.google.cloud.vision.v1._
 
 final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
     implicit E: Effect[F],
-    visionAPI: VisionAPI[F])
-    extends Gcp4sClient[F, ImageAnnotatorClient] {
+    visionAPI: VisionAPI[F]
+) extends Gcp4sClient[F, ImageAnnotatorClient] {
 
   private[gcp4s] val client: F[ImageAnnotatorClient] =
     E.catchNonFatal(ImageAnnotatorClient.create(settings))
 
   def labelImage(
       maxResults: Option[Int],
-      fileList: VisionSource*): F[VisionResponse[VisionLabelResponse]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionLabelResponse]] =
     visionAPI.labelImage(this, maxResults, fileList: _*)
 
   /**
@@ -27,7 +28,8 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
    */
   def textDetection(
       languages: Option[List[String]],
-      fileList: VisionSource*): F[VisionResponse[VisionTextResponse]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionTextResponse]] =
     visionAPI.textDetection(this, languages, fileList: _*)
 
   /**
@@ -36,17 +38,20 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
    */
   def documentTextDetection(
       languages: Option[List[String]],
-      fileList: VisionSource*): F[VisionResponse[VisionDocument]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionDocument]] =
     visionAPI.documentTextDetection(this, languages, fileList: _*)
 
   def faceDetection(
       maxResults: Option[Int],
-      fileList: VisionSource*): F[VisionResponse[VisionFaceResponse]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionFaceResponse]] =
     visionAPI.faceDetection(this, maxResults, fileList: _*)
 
   def logoDetection(
       maxResults: Option[Int],
-      fileList: VisionSource*): F[VisionResponse[VisionLogoResponse]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionLogoResponse]] =
     visionAPI.logoDetection(this, maxResults, fileList: _*)
 
   /**
@@ -60,12 +65,14 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
    */
   def cropHints(
       aspectRatios: Option[List[Float]],
-      fileList: VisionSource*): F[VisionResponse[VisionCropHintResponse]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionCropHintResponse]] =
     visionAPI.cropHints(this, aspectRatios, fileList: _*)
 
   def landmarkDetection(
       maxResults: Option[Int],
-      fileList: VisionSource*): F[VisionResponse[VisionLandMarkResponse]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionLandMarkResponse]] =
     visionAPI.landmarkDetection(this, maxResults, fileList: _*)
 
   def imagePropertiesDetection(fileList: VisionSource*): F[VisionResponse[VisionImageProperties]] =
@@ -77,12 +84,14 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
   def webEntitiesDetection(
       includeGeoLocation: Boolean,
       maxResults: Option[Int],
-      fileList: VisionSource*): F[VisionResponse[VisionWebDetection]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionWebDetection]] =
     visionAPI.webEntitiesDetection(this, includeGeoLocation, maxResults, fileList: _*)
 
   def objectDetection(
       maxResults: Option[Int],
-      fileList: VisionSource*): F[VisionResponse[VisionObjectResponse]] =
+      fileList: VisionSource*
+  ): F[VisionResponse[VisionObjectResponse]] =
     visionAPI.objectDetection(this, maxResults, fileList: _*)
 
 }
@@ -90,18 +99,20 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
 object VisionClient {
 
   private[vision] def buildSettings[F[_]: Effect](
-      maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]]): F[ImageAnnotatorSettings] = {
+      maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]]
+  ): F[ImageAnnotatorSettings] = {
     val builder = ImageAnnotatorSettings.newBuilder()
     maybeCredentialsProvider
       .fold(builder.pure[F])(cr => cr.credentials.map(builder.setCredentialsProvider))
       .map(_.build())
   }
 
-  def createClient[F[_]](maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]] = None)(
-      implicit E: Effect[F],
-      visionAPI: VisionAPI[F]): Resource[F, VisionClient[F]] =
+  def createClient[F[_]](
+      maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]] = None
+  )(implicit E: Effect[F], visionAPI: VisionAPI[F]): Resource[F, VisionClient[F]] =
     Resource.make(VisionClient.buildSettings(maybeCredentialsProvider).map(new VisionClient(_)))(
-      _.shutdown())
+      _.shutdown()
+    )
 
   def createImageSource[F[_]](uri: URI)(implicit E: Effect[F]): F[ImageSource] =
     E.delay(ImageSource.newBuilder().setImageUri(uri.toString).build())

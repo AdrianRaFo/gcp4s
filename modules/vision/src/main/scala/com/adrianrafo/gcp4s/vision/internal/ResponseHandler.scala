@@ -24,7 +24,9 @@ private[vision] object ResponseHandler {
           text.getDescription,
           text.getLocale,
           getConfidence(text.getScore),
-          getPosition(text.getBoundingPoly, false)))
+          getPosition(text.getBoundingPoly, false)
+        )
+    )
 
     VisionTextResponse(texts)
   }
@@ -35,7 +37,9 @@ private[vision] object ResponseHandler {
         VisionObject(
           entity.getName,
           getConfidence(entity.getScore),
-          getPosition(entity.getBoundingPoly, true)))
+          getPosition(entity.getBoundingPoly, true)
+        )
+    )
 
     VisionObjectResponse(objects)
   }
@@ -48,7 +52,8 @@ private[vision] object ResponseHandler {
           Grade.fromValue(annotation.getSurpriseLikelihoodValue),
           Grade.fromValue(annotation.getAngerLikelihoodValue),
           getPosition(annotation.getBoundingPoly, false)
-      ))
+        )
+    )
 
     VisionFaceResponse(faces)
   }
@@ -59,7 +64,9 @@ private[vision] object ResponseHandler {
         VisionLogo(
           annotation.getDescription,
           getConfidence(annotation.getScore),
-          getPosition(annotation.getBoundingPoly, false)))
+          getPosition(annotation.getBoundingPoly, false)
+        )
+    )
 
     VisionLogoResponse(logos)
   }
@@ -68,14 +75,14 @@ private[vision] object ResponseHandler {
     val landmarks = res.getLandmarkAnnotationsList.asScala.toList.map { annotation =>
       val coord: List[VisionCoordinates] = annotation.getLocationsList.asScala.toList.map(
         locationInfo =>
-          VisionCoordinates(
-            locationInfo.getLatLng.getLatitude,
-            locationInfo.getLatLng.getLongitude))
+          VisionCoordinates(locationInfo.getLatLng.getLatitude, locationInfo.getLatLng.getLongitude)
+      )
 
       VisionLandMark(
         annotation.getDescription,
         getConfidence(annotation.getScore),
-        VisionLocation(coord))
+        VisionLocation(coord)
+      )
     }
 
     VisionLandMarkResponse(landmarks)
@@ -98,11 +105,11 @@ private[vision] object ResponseHandler {
     def getImagesMatch(images: List[WebImage], level: MatchLevel.Value): List[VisionWebImageMatch] =
       images.map(image => VisionWebImageMatch(image.getUrl, getConfidence(image.getScore), level))
 
-    val entities: List[VisionWebEntity] = annotation.getWebEntitiesList.asScala.toList.map(entity =>
-      VisionWebEntity(entity.getDescription, getConfidence(entity.getScore)))
+    val entities: List[VisionWebEntity] = annotation.getWebEntitiesList.asScala.toList
+      .map(entity => VisionWebEntity(entity.getDescription, getConfidence(entity.getScore)))
 
-    val labels: List[VisionWebLabel] = annotation.getBestGuessLabelsList.asScala.toList.map(label =>
-      VisionWebLabel(label.getLabel, label.getLanguageCode))
+    val labels: List[VisionWebLabel] = annotation.getBestGuessLabelsList.asScala.toList
+      .map(label => VisionWebLabel(label.getLabel, label.getLanguageCode))
 
     val pages: List[VisionWebPageMatch] =
       annotation.getPagesWithMatchingImagesList.asScala.toList.map { page =>
@@ -139,7 +146,9 @@ private[vision] object ResponseHandler {
         VisionCropHint(
           getPosition(cropHint.getBoundingPoly, false),
           getConfidence(cropHint.getConfidence),
-          cropHint.getImportanceFraction))
+          cropHint.getImportanceFraction
+        )
+    )
 
     VisionCropHintResponse(cropHints)
   }
@@ -162,34 +171,36 @@ private[vision] object ResponseHandler {
   def handleDocumentTextResponse(res: AnnotateImageResponse): VisionDocument = {
 
     def getDetectedLanguages(property: TextProperty): List[VisionLanguage] =
-      property.getDetectedLanguagesList.asScala.toList.map(language =>
-        VisionLanguage(language.getLanguageCode, getConfidence(language.getConfidence)))
+      property.getDetectedLanguagesList.asScala.toList
+        .map(language => VisionLanguage(language.getLanguageCode, getConfidence(language.getConfidence)))
 
     val annotation = res.getFullTextAnnotation
 
     val pages: List[VisionPage] = annotation.getPagesList.asScala.toList.map { page =>
       val blocks: List[VisionBlock] = page.getBlocksList.asScala.toList.map { block =>
-        val paragraphs: List[VisionParagraph] = block.getParagraphsList.asScala.toList.map {
-          paragraph =>
-            val words: List[VisionWord] = paragraph.getWordsList.asScala.toList.map { word =>
-              val text = word.getSymbolsList.asScala.map(_.getText).mkString
-              VisionWord(
-                text,
-                getDetectedLanguages(word.getProperty),
-                getConfidence(word.getConfidence),
-                getPosition(word.getBoundingBox, false))
-            }
-            VisionParagraph(
-              words.map(_.text).mkString,
-              getConfidence(paragraph.getConfidence),
-              getDetectedLanguages(paragraph.getProperty),
-              words)
+        val paragraphs: List[VisionParagraph] = block.getParagraphsList.asScala.toList.map { paragraph =>
+          val words: List[VisionWord] = paragraph.getWordsList.asScala.toList.map { word =>
+            val text = word.getSymbolsList.asScala.map(_.getText).mkString
+            VisionWord(
+              text,
+              getDetectedLanguages(word.getProperty),
+              getConfidence(word.getConfidence),
+              getPosition(word.getBoundingBox, false)
+            )
+          }
+          VisionParagraph(
+            words.map(_.text).mkString,
+            getConfidence(paragraph.getConfidence),
+            getDetectedLanguages(paragraph.getProperty),
+            words
+          )
         }
         VisionBlock(
           paragraphs.map(_.text).mkString,
           getConfidence(block.getConfidence),
           getDetectedLanguages(block.getProperty),
-          paragraphs)
+          paragraphs
+        )
       }
       VisionPage(
         blocks.map(_.text).mkString,
@@ -197,7 +208,8 @@ private[vision] object ResponseHandler {
         getDetectedLanguages(page.getProperty),
         page.getWidth,
         page.getHeight,
-        blocks)
+        blocks
+      )
     }
 
     VisionDocument(annotation.getText, pages)
@@ -216,7 +228,7 @@ private[vision] object ResponseHandler {
             color.getColor.getAlpha.getValue,
             color.getPixelFraction,
             getConfidence(color.getScore)
-        )
+          )
       )
     } else List.empty
 

@@ -7,12 +7,12 @@ object ProjectPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val V = new {
-      val cats        = "1.6.0"
-      val catsEffects = "1.2.0"
-      val scalaTest   = "3.0.6"
-      val gax         = "1.40.0"
-      val gcpClient   = "1.63.0"
-      val kittens     = "1.2.0"
+      val cats        = "1.6.1"
+      val catsEffects = "1.4.0"
+      val scalaTest   = "3.0.8"
+      val gax         = "1.47.1"
+      val gcpClient   = "1.87.0"
+      val kittens     = "1.2.1"
     }
 
   }
@@ -23,19 +23,25 @@ object ProjectPlugin extends AutoPlugin {
     Seq(
       libraryDependencies ++= Seq(
         "org.typelevel" %% "cats-core"   % V.cats,
-        "org.typelevel" %% "cats-effect" % V.catsEffects))
+        "org.typelevel" %% "cats-effect" % V.catsEffects
+      )
+    )
 
   lazy val commonSettings: Seq[Def.Setting[_]] = gcpModuleSettings ++ Seq(
     libraryDependencies ++=
       Seq(
         "org.typelevel"  %% "kittens"   % V.kittens,
         "com.google.api" % "gax"        % V.gax,
-        "org.scalatest"  %% "scalatest" % V.scalaTest % Test))
+        "org.scalatest"  %% "scalatest" % V.scalaTest % Test
+      )
+  )
 
   lazy val visionSettings: Seq[Def.Setting[_]] = gcpModuleSettings ++ Defaults.itSettings ++ Seq(
     libraryDependencies ++= Seq(
       "com.google.cloud" % "google-cloud-vision" % V.gcpClient,
-      "org.scalatest"    %% "scalatest"          % V.scalaTest % "test;it"))
+      "org.scalatest"    %% "scalatest"          % V.scalaTest % "test;it"
+    )
+  )
 
   override def trigger: PluginTrigger = allRequirements
 
@@ -44,7 +50,7 @@ object ProjectPlugin extends AutoPlugin {
       name := "gcp4s",
       organization := "com.adrianrafo",
       organizationName := "AdrianRaFo",
-      scalaVersion := "2.12.8",
+      scalaVersion := "2.12.9",
       scalacOptions := Seq(
         "-deprecation",
         "-encoding",

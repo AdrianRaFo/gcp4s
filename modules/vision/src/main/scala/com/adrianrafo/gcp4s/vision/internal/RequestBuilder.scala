@@ -26,9 +26,8 @@ private[vision] object RequestBuilder {
       filePath: VisionSource,
       featureType: Feature.Type,
       context: Option[ImageContext],
-      maxResults: Option[Int])(
-      implicit E: Effect[F],
-      EC: ExecutionContext): VisionResult[F, AnnotateImageRequest] = {
+      maxResults: Option[Int]
+  )(implicit E: Effect[F], EC: ExecutionContext): VisionResult[F, AnnotateImageRequest] = {
 
     def buildImage: VisionResult[F, Image] = {
       def getPath(path: String): VisionResult[F, Path] =
@@ -40,9 +39,11 @@ private[vision] object RequestBuilder {
         .fold(
           filePath =>
             getPath(filePath)
-              .flatMap(path =>
-                ErrorHandlerService
-                  .handleError(ByteString.copyFrom(Files.readAllBytes(path)), visionErrorHandler))
+              .flatMap(
+                path =>
+                  ErrorHandlerService
+                    .handleError(ByteString.copyFrom(Files.readAllBytes(path)), visionErrorHandler)
+              )
               .map(builder.setContent(_).build()),
           source => EitherT.rightT[F, VisionError](builder.setSource(source).build())
         )
@@ -62,25 +63,29 @@ private[vision] object RequestBuilder {
       .map(builder => context.map(builder.setImageContext).getOrElse(builder).build())
   }
 
-  def createTextDetectionContext[F[_]](languages: Option[List[String]])(
-      implicit E: Effect[F]): F[Option[ImageContext]] =
+  def createTextDetectionContext[F[_]](
+      languages: Option[List[String]]
+  )(implicit E: Effect[F]): F[Option[ImageContext]] =
     languages.traverse(lang => createImageContext(_.addAllLanguageHints(lang.asJava)))
 
-  def createWebDetectionContext[F[_]](includeGeoLocation: Boolean)(
-      implicit E: Effect[F]): F[Option[ImageContext]] =
+  def createWebDetectionContext[F[_]](
+      includeGeoLocation: Boolean
+  )(implicit E: Effect[F]): F[Option[ImageContext]] =
     E.delay(WebDetectionParams.newBuilder().setIncludeGeoResults(includeGeoLocation).build())
       .flatMap(params => createImageContext(_.setWebDetectionParams(params)))
       .map(_.some)
 
-  def createCropHintContext[F[_]](aspectRatios: Option[List[Float]])(
-      implicit E: Effect[F]): F[Option[ImageContext]] =
+  def createCropHintContext[F[_]](
+      aspectRatios: Option[List[Float]]
+  )(implicit E: Effect[F]): F[Option[ImageContext]] =
     aspectRatios.traverse(
       ratios =>
-        E.delay(
-            CropHintsParams.newBuilder().addAllAspectRatios(ratios.map(float2Float).asJava).build())
-          .flatMap(params => createImageContext(_.setCropHintsParams(params))))
+        E.delay(CropHintsParams.newBuilder().addAllAspectRatios(ratios.map(float2Float).asJava).build())
+          .flatMap(params => createImageContext(_.setCropHintsParams(params)))
+    )
 
-  private def createImageContext[F[_]](contextParams: ImageContext.Builder => ImageContext.Builder)(
-      implicit E: Effect[F]): F[ImageContext] =
+  private def createImageContext[F[_]](
+      contextParams: ImageContext.Builder => ImageContext.Builder
+  )(implicit E: Effect[F]): F[ImageContext] =
     E.delay(contextParams(ImageContext.newBuilder()).build())
 }
