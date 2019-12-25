@@ -9,16 +9,16 @@ import com.adrianrafo.gcp4s.{Gcp4sClient, Gcp4sCredentialsProvider}
 import com.google.cloud.vision.v1._
 
 final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
-    implicit E: Effect[F],
-    visionAPI: VisionAPI[F]
+  implicit E: Effect[F],
+  visionAPI: VisionAPI[F]
 ) extends Gcp4sClient[F, ImageAnnotatorClient] {
 
   private[gcp4s] val client: F[ImageAnnotatorClient] =
     E.catchNonFatal(ImageAnnotatorClient.create(settings))
 
   def labelImage(
-      maxResults: Option[Int],
-      fileList: VisionSource*
+    maxResults: Option[Int],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionLabelResponse]] =
     visionAPI.labelImage(this, maxResults, fileList: _*)
 
@@ -27,8 +27,8 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
    * None for autodetect language
    */
   def textDetection(
-      languages: Option[List[String]],
-      fileList: VisionSource*
+    languages: Option[List[String]],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionTextResponse]] =
     visionAPI.textDetection(this, languages, fileList: _*)
 
@@ -37,20 +37,20 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
    * None for autodetect language
    */
   def documentTextDetection(
-      languages: Option[List[String]],
-      fileList: VisionSource*
+    languages: Option[List[String]],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionDocument]] =
     visionAPI.documentTextDetection(this, languages, fileList: _*)
 
   def faceDetection(
-      maxResults: Option[Int],
-      fileList: VisionSource*
+    maxResults: Option[Int],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionFaceResponse]] =
     visionAPI.faceDetection(this, maxResults, fileList: _*)
 
   def logoDetection(
-      maxResults: Option[Int],
-      fileList: VisionSource*
+    maxResults: Option[Int],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionLogoResponse]] =
     visionAPI.logoDetection(this, maxResults, fileList: _*)
 
@@ -64,14 +64,14 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
    *
    */
   def cropHints(
-      aspectRatios: Option[List[Float]],
-      fileList: VisionSource*
+    aspectRatios: Option[List[Float]],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionCropHintResponse]] =
     visionAPI.cropHints(this, aspectRatios, fileList: _*)
 
   def landmarkDetection(
-      maxResults: Option[Int],
-      fileList: VisionSource*
+    maxResults: Option[Int],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionLandMarkResponse]] =
     visionAPI.landmarkDetection(this, maxResults, fileList: _*)
 
@@ -82,15 +82,15 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
     visionAPI.safeSearchDetection(this, fileList: _*)
 
   def webEntitiesDetection(
-      includeGeoLocation: Boolean,
-      maxResults: Option[Int],
-      fileList: VisionSource*
+    includeGeoLocation: Boolean,
+    maxResults: Option[Int],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionWebDetection]] =
     visionAPI.webEntitiesDetection(this, includeGeoLocation, maxResults, fileList: _*)
 
   def objectDetection(
-      maxResults: Option[Int],
-      fileList: VisionSource*
+    maxResults: Option[Int],
+    fileList: VisionSource*
   ): F[VisionResponse[VisionObjectResponse]] =
     visionAPI.objectDetection(this, maxResults, fileList: _*)
 
@@ -99,7 +99,7 @@ final class VisionClient[F[_]](settings: ImageAnnotatorSettings)(
 object VisionClient {
 
   private[vision] def buildSettings[F[_]: Effect](
-      maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]]
+    maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]]
   ): F[ImageAnnotatorSettings] = {
     val builder = ImageAnnotatorSettings.newBuilder()
     maybeCredentialsProvider
@@ -108,7 +108,7 @@ object VisionClient {
   }
 
   def createClient[F[_]](
-      maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]] = None
+    maybeCredentialsProvider: Option[Gcp4sCredentialsProvider[F]] = None
   )(implicit E: Effect[F], visionAPI: VisionAPI[F]): Resource[F, VisionClient[F]] =
     Resource.make(VisionClient.buildSettings(maybeCredentialsProvider).map(new VisionClient(_)))(
       _.shutdown()

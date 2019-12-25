@@ -87,10 +87,10 @@ object VisionLanguage {
 }
 
 case class VisionWord(
-    text: String,
-    languages: List[VisionLanguage],
-    confidence: Int,
-    position: VisionPosition
+  text: String,
+  languages: List[VisionLanguage],
+  confidence: Int,
+  position: VisionPosition
 )
 
 object VisionWord {
@@ -98,10 +98,10 @@ object VisionWord {
 }
 
 case class VisionParagraph(
-    text: String,
-    confidence: Int,
-    languages: List[VisionLanguage],
-    words: List[VisionWord]
+  text: String,
+  confidence: Int,
+  languages: List[VisionLanguage],
+  words: List[VisionWord]
 )
 
 object VisionParagraph {
@@ -109,10 +109,10 @@ object VisionParagraph {
 }
 
 case class VisionBlock(
-    text: String,
-    confidence: Int,
-    languages: List[VisionLanguage],
-    paragraphs: List[VisionParagraph]
+  text: String,
+  confidence: Int,
+  languages: List[VisionLanguage],
+  paragraphs: List[VisionParagraph]
 )
 
 object VisionBlock {
@@ -120,12 +120,12 @@ object VisionBlock {
 }
 
 case class VisionPage(
-    text: String,
-    confidence: Int,
-    languages: List[VisionLanguage],
-    width: Int,
-    height: Int,
-    blocks: List[VisionBlock]
+  text: String,
+  confidence: Int,
+  languages: List[VisionLanguage],
+  width: Int,
+  height: Int,
+  blocks: List[VisionBlock]
 )
 
 object VisionPage {
@@ -153,11 +153,16 @@ object VisionObjectResponse {
 
 //Face
 case class VisionFace(
-    joy: Grade.Value,
-    surprise: Grade.Value,
-    anger: Grade.Value,
-    position: VisionPosition
-)
+  joy: Grade.Value,
+  surprise: Grade.Value,
+  anger: Grade.Value,
+  position: VisionPosition
+) {
+  def isExpressionless: Boolean  = joy == surprise && surprise == anger
+  def isMainlyJoy: Boolean       = !isExpressionless && joy >= surprise && joy >= anger
+  def isMainlySurprised: Boolean = !isExpressionless && surprise >= joy && surprise >= anger
+  def isMainlyAnger: Boolean     = !isExpressionless && anger >= joy && anger >= surprise
+}
 
 object VisionFace {
   implicit val visionFaceShow: Show[VisionFace] = semi.show[VisionFace]
@@ -197,11 +202,11 @@ object VisionLandMarkResponse {
 
 //Safe search
 case class VisionSafeSearch(
-    adult: Grade.Value,
-    spoof: Grade.Value,
-    medical: Grade.Value,
-    violence: Grade.Value,
-    racy: Grade.Value
+  adult: Grade.Value,
+  spoof: Grade.Value,
+  medical: Grade.Value,
+  violence: Grade.Value,
+  racy: Grade.Value
 )
 
 object VisionSafeSearch {
@@ -224,10 +229,10 @@ object VisionWebImageMatch {
 }
 
 case class VisionWebPageMatch(
-    title: String,
-    url: String,
-    confidence: Int,
-    images: List[VisionWebImageMatch]
+  title: String,
+  url: String,
+  confidence: Int,
+  images: List[VisionWebImageMatch]
 )
 
 object VisionWebPageMatch {
@@ -247,10 +252,10 @@ object VisionWebLabel {
 }
 
 case class VisionWebDetection(
-    entities: List[VisionWebEntity],
-    webLabels: List[VisionWebLabel],
-    pages: List[VisionWebPageMatch],
-    images: List[VisionWebImageMatch]
+  entities: List[VisionWebEntity],
+  webLabels: List[VisionWebLabel],
+  pages: List[VisionWebPageMatch],
+  images: List[VisionWebImageMatch]
 )
 
 object VisionWebDetection {
@@ -272,12 +277,12 @@ object VisionCropHintResponse {
 
 //Image Properties
 case class VisionColor(
-    red: Float,
-    green: Float,
-    blue: Float,
-    alpha: Float,
-    pixelFraction: Float,
-    confidence: Int
+  red: Float,
+  green: Float,
+  blue: Float,
+  alpha: Float,
+  pixelFraction: Float,
+  confidence: Int
 )
 
 object VisionColor {

@@ -1,7 +1,6 @@
 package com.adrianrafo.gcp4s.vision.internal
 
 import cats.effect.Effect
-import cats.syntax.either._
 import cats.syntax.functor._
 import com.adrianrafo.gcp4s.ErrorHandlerService
 import com.adrianrafo.gcp4s.vision._
@@ -13,12 +12,12 @@ import scala.concurrent.ExecutionContext
 private[vision] object syntax {
 
   final class VisionClientOps[F[_]](visionClient: VisionClient[F])(
-      implicit E: Effect[F],
-      EC: ExecutionContext
+    implicit E: Effect[F],
+    EC: ExecutionContext
   ) {
 
     def sendRequest(
-        batchRequest: BatchAnnotateImagesRequest
+      batchRequest: BatchAnnotateImagesRequest
     ): VisionResult[F, BatchAnnotateImagesResponse] =
       ErrorHandlerService
         .handleError(
@@ -29,58 +28,41 @@ private[vision] object syntax {
 
   }
 
-  final class BatchAnnotateImagesResponseOps(batchImageResponse: BatchAnnotateImagesResponse) {
-
-    import scala.collection.JavaConverters._
+  final class BatchAnnotateImagesResponseOps(batchImageResponse: BatchAnnotateImagesResponse)
+      extends BatchAnnotateImagesResponseOpsLike {
 
     def processLabels: VisionResponse[VisionLabelResponse] =
-      handleVisionResponse(handleLabelResponse)
+      handleVisionResponse(batchImageResponse)(handleLabelResponse)
 
     def processText: VisionResponse[VisionTextResponse] =
-      handleVisionResponse(handleTextResponse)
+      handleVisionResponse(batchImageResponse)(handleTextResponse)
 
     def processObjectDetection: VisionResponse[VisionObjectResponse] =
-      handleVisionResponse(handleObjectResponse)
+      handleVisionResponse(batchImageResponse)(handleObjectResponse)
 
     def processFace: VisionResponse[VisionFaceResponse] =
-      handleVisionResponse(handleFaceResponse)
-
-    private def handleVisionResponse[A](
-        handleResponse: AnnotateImageResponse => A
-    ): VisionResponse[A] = {
-
-      def handleErrors(response: AnnotateImageResponse): Either[VisionError, A] =
-        response match {
-          case res if res.hasError => VisionError(s"Error: ${res.getError}").asLeft[A]
-          case res                 => handleResponse(res).asRight[VisionError]
-        }
-
-      batchImageResponse.getResponsesList.asScala
-        .foldLeft(List.empty[Either[VisionError, A]]) {
-          case (list, res) => list :+ handleErrors(res)
-        }
-    }
+      handleVisionResponse(batchImageResponse)(handleFaceResponse)
 
     def processLogo: VisionResponse[VisionLogoResponse] =
-      handleVisionResponse(handleLogoResponse)
+      handleVisionResponse(batchImageResponse)(handleLogoResponse)
 
     def processLandmark: VisionResponse[VisionLandMarkResponse] =
-      handleVisionResponse(handleLandmarkResponse)
+      handleVisionResponse(batchImageResponse)(handleLandmarkResponse)
 
     def processSafeSearch: VisionResponse[VisionSafeSearch] =
-      handleVisionResponse(handleSafeSearchResponse)
+      handleVisionResponse(batchImageResponse)(handleSafeSearchResponse)
 
     def processWebEntities: VisionResponse[VisionWebDetection] =
-      handleVisionResponse(handleWebEntitiesResponse)
+      handleVisionResponse(batchImageResponse)(handleWebEntitiesResponse)
 
     def processCropHints: VisionResponse[VisionCropHintResponse] =
-      handleVisionResponse(handleCropHintResponse)
+      handleVisionResponse(batchImageResponse)(handleCropHintResponse)
 
     def processDocumentText: VisionResponse[VisionDocument] =
-      handleVisionResponse(handleDocumentTextResponse)
+      handleVisionResponse(batchImageResponse)(handleDocumentTextResponse)
 
     def processImageProperties: VisionResponse[VisionImageProperties] =
-      handleVisionResponse(handleImagePropertiesResponse)
+      handleVisionResponse(batchImageResponse)(handleImagePropertiesResponse)
 
   }
 

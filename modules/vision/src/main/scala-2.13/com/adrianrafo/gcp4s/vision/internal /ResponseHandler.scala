@@ -1,12 +1,11 @@
 package com.adrianrafo.gcp4s.vision
-
 package internal
 
 import com.google.cloud.vision.v1.TextAnnotation.TextProperty
 import com.google.cloud.vision.v1.WebDetection.WebImage
 import com.google.cloud.vision.v1._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 private[vision] object ResponseHandler {
 
@@ -18,54 +17,50 @@ private[vision] object ResponseHandler {
   }
 
   def handleTextResponse(res: AnnotateImageResponse): VisionTextResponse = {
-    val texts = res.getTextAnnotationsList.asScala.toList.map(
-      text =>
-        VisionText(
-          text.getDescription,
-          text.getLocale,
-          getConfidence(text.getScore),
-          getPosition(text.getBoundingPoly, false)
-        )
+    val texts = res.getTextAnnotationsList.asScala.toList.map(text =>
+      VisionText(
+        text.getDescription,
+        text.getLocale,
+        getConfidence(text.getScore),
+        getPosition(text.getBoundingPoly, false)
+      )
     )
 
     VisionTextResponse(texts)
   }
 
   def handleObjectResponse(res: AnnotateImageResponse): VisionObjectResponse = {
-    val objects = res.getLocalizedObjectAnnotationsList.asScala.toList.map(
-      entity =>
-        VisionObject(
-          entity.getName,
-          getConfidence(entity.getScore),
-          getPosition(entity.getBoundingPoly, true)
-        )
+    val objects = res.getLocalizedObjectAnnotationsList.asScala.toList.map(entity =>
+      VisionObject(
+        entity.getName,
+        getConfidence(entity.getScore),
+        getPosition(entity.getBoundingPoly, true)
+      )
     )
 
     VisionObjectResponse(objects)
   }
 
   def handleFaceResponse(res: AnnotateImageResponse): VisionFaceResponse = {
-    val faces = res.getFaceAnnotationsList.asScala.toList.map(
-      annotation =>
-        VisionFace(
-          Grade.fromValue(annotation.getJoyLikelihoodValue),
-          Grade.fromValue(annotation.getSurpriseLikelihoodValue),
-          Grade.fromValue(annotation.getAngerLikelihoodValue),
-          getPosition(annotation.getBoundingPoly, false)
-        )
+    val faces = res.getFaceAnnotationsList.asScala.toList.map(annotation =>
+      VisionFace(
+        Grade.fromValue(annotation.getJoyLikelihoodValue),
+        Grade.fromValue(annotation.getSurpriseLikelihoodValue),
+        Grade.fromValue(annotation.getAngerLikelihoodValue),
+        getPosition(annotation.getBoundingPoly, false)
+      )
     )
 
     VisionFaceResponse(faces)
   }
 
   def handleLogoResponse(res: AnnotateImageResponse): VisionLogoResponse = {
-    val logos = res.getLogoAnnotationsList.asScala.toList.map(
-      annotation =>
-        VisionLogo(
-          annotation.getDescription,
-          getConfidence(annotation.getScore),
-          getPosition(annotation.getBoundingPoly, false)
-        )
+    val logos = res.getLogoAnnotationsList.asScala.toList.map(annotation =>
+      VisionLogo(
+        annotation.getDescription,
+        getConfidence(annotation.getScore),
+        getPosition(annotation.getBoundingPoly, false)
+      )
     )
 
     VisionLogoResponse(logos)
@@ -73,9 +68,8 @@ private[vision] object ResponseHandler {
 
   def handleLandmarkResponse(res: AnnotateImageResponse): VisionLandMarkResponse = {
     val landmarks = res.getLandmarkAnnotationsList.asScala.toList.map { annotation =>
-      val coord: List[VisionCoordinates] = annotation.getLocationsList.asScala.toList.map(
-        locationInfo =>
-          VisionCoordinates(locationInfo.getLatLng.getLatitude, locationInfo.getLatLng.getLongitude)
+      val coord: List[VisionCoordinates] = annotation.getLocationsList.asScala.toList.map(locationInfo =>
+        VisionCoordinates(locationInfo.getLatLng.getLatitude, locationInfo.getLatLng.getLongitude)
       )
 
       VisionLandMark(
@@ -119,7 +113,7 @@ private[vision] object ResponseHandler {
           getImagesMatch(page.getFullMatchingImagesList.asScala.toList, MatchLevel.Full)
 
         val images =
-          (partialImages ++ fullImages).groupBy(_.url).mapValues(_.minBy(_.level)).values.toList
+          (partialImages ++ fullImages).groupBy(_.url).view.mapValues(_.minBy(_.level)).values.toList
         VisionWebPageMatch(page.getPageTitle, page.getUrl, getConfidence(page.getScore), images)
       }
 
@@ -133,6 +127,7 @@ private[vision] object ResponseHandler {
     val images =
       (partialImages ++ fullImages ++ similarImages)
         .groupBy(_.url)
+        .view
         .mapValues(_.minBy(_.level))
         .values
         .toList
@@ -141,13 +136,12 @@ private[vision] object ResponseHandler {
   }
 
   def handleCropHintResponse(res: AnnotateImageResponse): VisionCropHintResponse = {
-    val cropHints = res.getCropHintsAnnotation.getCropHintsList.asScala.toList.map(
-      cropHint =>
-        VisionCropHint(
-          getPosition(cropHint.getBoundingPoly, false),
-          getConfidence(cropHint.getConfidence),
-          cropHint.getImportanceFraction
-        )
+    val cropHints = res.getCropHintsAnnotation.getCropHintsList.asScala.toList.map(cropHint =>
+      VisionCropHint(
+        getPosition(cropHint.getBoundingPoly, false),
+        getConfidence(cropHint.getConfidence),
+        cropHint.getImportanceFraction
+      )
     )
 
     VisionCropHintResponse(cropHints)
@@ -219,16 +213,15 @@ private[vision] object ResponseHandler {
     val imgProperties = res.getImagePropertiesAnnotation
 
     val colors: List[VisionColor] = if (imgProperties.hasDominantColors) {
-      imgProperties.getDominantColors.getColorsList.asScala.toList.map(
-        color =>
-          VisionColor(
-            color.getColor.getRed,
-            color.getColor.getGreen,
-            color.getColor.getBlue,
-            color.getColor.getAlpha.getValue,
-            color.getPixelFraction,
-            getConfidence(color.getScore)
-          )
+      imgProperties.getDominantColors.getColorsList.asScala.toList.map(color =>
+        VisionColor(
+          color.getColor.getRed,
+          color.getColor.getGreen,
+          color.getColor.getBlue,
+          color.getColor.getAlpha.getValue,
+          color.getPixelFraction,
+          getConfidence(color.getScore)
+        )
       )
     } else List.empty
 

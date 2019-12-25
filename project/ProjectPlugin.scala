@@ -1,4 +1,3 @@
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
@@ -7,12 +6,12 @@ object ProjectPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val V = new {
-      val cats        = "1.6.1"
-      val catsEffects = "1.4.0"
-      val scalaTest   = "3.0.8"
-      val gax         = "1.47.1"
-      val gcpClient   = "1.87.0"
-      val kittens     = "1.2.1"
+      val cats       = "2.1.0"
+      val catsEffect = "2.0.0"
+      val scalaTest  = "3.1.0"
+      val gax        = "1.52.0"
+      val gcpClient  = "1.99.0"
+      val kittens    = "2.0.0"
     }
 
   }
@@ -23,7 +22,7 @@ object ProjectPlugin extends AutoPlugin {
     Seq(
       libraryDependencies ++= Seq(
         "org.typelevel" %% "cats-core"   % V.cats,
-        "org.typelevel" %% "cats-effect" % V.catsEffects
+        "org.typelevel" %% "cats-effect" % V.catsEffect
       )
     )
 
@@ -50,7 +49,8 @@ object ProjectPlugin extends AutoPlugin {
       name := "gcp4s",
       organization := "com.adrianrafo",
       organizationName := "AdrianRaFo",
-      scalaVersion := "2.12.9",
+      scalaVersion := "2.13.1",
+      crossScalaVersions := Seq("2.12.10", "2.13.1"),
       scalacOptions := Seq(
         "-deprecation",
         "-encoding",
@@ -61,16 +61,12 @@ object ProjectPlugin extends AutoPlugin {
         "-language:implicitConversions",
         "-unchecked",
         "-Xlint",
-        "-Ypartial-unification",
-        "-Yno-adapted-args",
+        "-Xfatal-warnings",
         "-Ywarn-dead-code",
         "-Ywarn-numeric-widen",
         "-Ywarn-value-discard",
-        "-Xfuture",
-        "-Ywarn-unused-import"
-      ),
-      scalafmtCheck := true,
-      scalafmtOnCompile := true
+        "-Ywarn-unused:imports"
+      )
     )
 
 }

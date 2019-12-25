@@ -12,7 +12,7 @@ trait Gcp4sCredentialsProvider[F[_]] {
 object Gcp4sCredentialsProvider {
 
   def getCredentials[F[_]](
-      credentialsPath: String
+    credentialsPath: String
   )(implicit F: Effect[F]): F[Gcp4sCredentialsProvider[F]] =
     F.delay(new Gcp4sCredentialsProvider[F] {
 
