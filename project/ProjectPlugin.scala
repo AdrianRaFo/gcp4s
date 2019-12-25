@@ -50,23 +50,7 @@ object ProjectPlugin extends AutoPlugin {
       organization := "com.adrianrafo",
       organizationName := "AdrianRaFo",
       scalaVersion := "2.13.1",
-      crossScalaVersions := Seq("2.12.10", "2.13.1"),
-      scalacOptions := Seq(
-        "-deprecation",
-        "-encoding",
-        "UTF-8",
-        "-feature",
-        "-language:existentials",
-        "-language:higherKinds",
-        "-language:implicitConversions",
-        "-unchecked",
-        "-Xlint",
-        "-Xfatal-warnings",
-        "-Ywarn-dead-code",
-        "-Ywarn-numeric-widen",
-        "-Ywarn-value-discard",
-        "-Ywarn-unused:imports"
-      )
+      crossScalaVersions := Seq("2.12.10", "2.13.1")
     )
 
 }
