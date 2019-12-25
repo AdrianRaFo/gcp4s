@@ -19,7 +19,24 @@ object VisionVertex {
   implicit val VisionVertexShow: Show[VisionVertex] = semi.show[VisionVertex]
 }
 
-case class VisionPosition(vertices: List[VisionVertex])
+case class PositionSquare(
+  leftDown: VisionVertex,
+  rightDown: VisionVertex,
+  rightTop: VisionVertex,
+  leftTop: VisionVertex
+)
+
+case class VisionPosition(vertices: List[VisionVertex]) {
+  def asSquare: Option[PositionSquare] =
+    if (vertices.size == 4) {
+      Some(PositionSquare(
+        leftDown = vertices.head,
+        rightDown = vertices.tail.head,
+        rightTop = vertices.tail.tail.head,
+        leftTop = vertices.last
+      ))
+    } else None
+}
 
 object VisionPosition {
   implicit val VisionPositionShow: Show[VisionPosition] = semi.show[VisionPosition]
@@ -156,12 +173,14 @@ case class VisionFace(
   joy: Grade.Value,
   surprise: Grade.Value,
   anger: Grade.Value,
+  sorrow: Grade.Value,
   position: VisionPosition
 ) {
-  def isExpressionless: Boolean  = joy == surprise && surprise == anger
-  def isMainlyJoy: Boolean       = !isExpressionless && joy >= surprise && joy >= anger
-  def isMainlySurprised: Boolean = !isExpressionless && surprise >= joy && surprise >= anger
-  def isMainlyAnger: Boolean     = !isExpressionless && anger >= joy && anger >= surprise
+  def isExpressionless: Boolean  = joy == surprise && surprise == anger && anger == sorrow
+  def isMainlyJoy: Boolean       = !isExpressionless && joy >= surprise && joy >= anger && joy >= sorrow
+  def isMainlySurprised: Boolean = !isExpressionless && surprise >= joy && surprise >= anger && surprise >= sorrow
+  def isMainlyAnger: Boolean     = !isExpressionless && anger >= joy && anger >= surprise && anger >= sorrow
+  def isMainlySorrowed: Boolean  = !isExpressionless && sorrow >= joy && sorrow >= surprise && sorrow >= anger
 }
 
 object VisionFace {

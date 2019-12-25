@@ -47,7 +47,8 @@ private[vision] object ResponseHandler {
         Grade.fromValue(annotation.getJoyLikelihoodValue),
         Grade.fromValue(annotation.getSurpriseLikelihoodValue),
         Grade.fromValue(annotation.getAngerLikelihoodValue),
-        getPosition(annotation.getBoundingPoly, false)
+        Grade.fromValue(annotation.getSorrowLikelihoodValue),
+        getPosition(annotation.getFdBoundingPoly, false)
       )
     )
 
