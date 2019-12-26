@@ -26,6 +26,15 @@ case class PositionSquare(
   leftTop: VisionVertex
 )
 
+object PositionSquare {
+  implicit val VisionPositionShow: Show[PositionSquare] =
+    Show.show[PositionSquare]{sqr =>
+    import sqr._
+      s"""PositionSquare:
+         |  ${leftTop.x}, ${leftTop.y} - ${rightTop.x}, ${rightTop.y}
+         |  ${leftDown.x}, ${leftDown.y} - ${rightDown.x}, ${rightDown.y}""".stripMargin}
+}
+
 case class VisionPosition(vertices: List[VisionVertex]) {
   def asSquare: Option[PositionSquare] =
     if (vertices.size == 4) {
