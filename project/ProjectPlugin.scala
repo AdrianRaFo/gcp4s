@@ -9,7 +9,7 @@ object ProjectPlugin extends AutoPlugin {
       val cats       = "2.1.0"
       val catsEffect = "2.0.0"
       val scalaTest  = "3.1.0"
-      val gax        = "1.52.0"
+      val gax        = "1.50.1"
       val gcpClient  = "1.99.0"
       val kittens    = "2.0.0"
     }

@@ -50,6 +50,13 @@ class VisionAPITest extends AnyFunSuite with Matchers with BeforeAndAfterAll {
     response.map(_.faces.forall(_.joy == Grade.VeryLikely)) shouldBe Right(true)
   }
 
+  test("VisionService should recognize surprise faces from an image") {
+    val path     = "./modules/vision/src/it/resources/surprise.jpg"
+    val response = client.faceDetection(None, Left(path)).unsafeRunSync().head
+    response.isRight shouldBe true
+    response.map(_.faces.forall(_.surprise == Grade.VeryLikely)) shouldBe Right(true)
+  }
+
   test("VisionService should recognize anger faces from an image") {
     val path     = "./modules/vision/src/it/resources/anger.jpg"
     val response = client.faceDetection(None, Left(path)).unsafeRunSync().head
@@ -57,11 +64,11 @@ class VisionAPITest extends AnyFunSuite with Matchers with BeforeAndAfterAll {
     response.map(_.faces.forall(_.anger == Grade.VeryLikely)) shouldBe Right(true)
   }
 
-  test("VisionService should recognize surprise faces from an image") {
-    val path     = "./modules/vision/src/it/resources/surprise.jpg"
+  test("VisionService should recognize sorrow faces from an image") {
+    val path     = "./modules/vision/src/it/resources/sorrow.jpeg"
     val response = client.faceDetection(None, Left(path)).unsafeRunSync().head
     response.isRight shouldBe true
-    response.map(_.faces.forall(_.surprise == Grade.VeryLikely)) shouldBe Right(true)
+    response.map(_.faces.forall(_.sorrow == Grade.VeryLikely)) shouldBe Right(true)
   }
 
   test("VisionService should recognize logos from an image") {
