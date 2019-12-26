@@ -27,7 +27,7 @@ case class PositionSquare(
 )
 
 object PositionSquare {
-  implicit val VisionPositionShow: Show[PositionSquare] =
+  implicit val PositionSquareShow: Show[PositionSquare] =
     Show.show[PositionSquare]{sqr =>
     import sqr._
       s"""PositionSquare:
